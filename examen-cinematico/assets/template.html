@@ -343,6 +343,8 @@ dialog .actions{justify-content:flex-end}
 .fc-left .btn:disabled{opacity:.35;cursor:default}
 .fc-meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 16px;font:600 11.5px var(--fm);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
 .fc-meta b{color:var(--accent);font-weight:600}
+.fc-lap{margin:-4px 0 18px;padding:10px 14px;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);font:500 13px/1.45 var(--fb);color:var(--ink)}
+.fc-lap b{display:block;font:600 11px var(--fm);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
 .fcard .q{border-top:0;padding:0;grid-template-columns:1fr}
 .fcard .q-n,.fcard .q-tag{display:none}
 .fcard .pareo{border-top:0;padding:4px 0 0}
@@ -1047,7 +1049,7 @@ function setPart(i){PART=PARTS[i];TOPICS=ALL_TOPICS.filter(t=>PART.temas.include
 function freeInit(){
   const sv=store.get(FKEY)||{};
   const types=(sv.types||TYPE_ORDER).filter(t=>bankCount(t)),topics=(sv.topics||TOPICS.map(t=>t.id)).filter(id=>TOPICS.some(t=>t.id===id));
-  FREE={types:new Set(types.length?types:TYPE_ORDER.filter(t=>bankCount(t))),topics:new Set(topics.length?topics:TOPICS.map(t=>t.id)),queue:[],last:null,card:null,counted:false,hist:[],pos:-1,open:sv.open!==false,st:{n:0,ok:0,got:0,max:0,streak:0,best:sv.best||0}};
+  FREE={types:new Set(types.length?types:TYPE_ORDER.filter(t=>bankCount(t))),topics:new Set(topics.length?topics:TOPICS.map(t=>t.id)),seen:new Set(),last:null,card:null,counted:false,hist:[],pos:-1,open:sv.open!==false,st:{n:0,ok:0,got:0,max:0,streak:0,best:sv.best||0}};
 }
 const saveFree=()=>store.set(FKEY,{types:[...FREE.types],topics:[...FREE.topics],open:FREE.open,best:FREE.st.best});
 function candidates(){
@@ -1060,8 +1062,8 @@ const mixCount=(types,topics)=>TYPE_ORDER.filter(t=>types.has(t)).reduce((a,t)=>
 function startFree(opts={}){
   if(PARTS&&opts.part!=null)setPart(opts.part);else if(PARTS&&!PART)setPart(0);
   if(!FREE)freeInit();
-  if(opts.topics){FREE.topics=new Set(opts.topics);FREE.queue=[]}
-  if(opts.types){FREE.types=new Set(opts.types);FREE.queue=[]}
+  if(opts.topics)FREE.topics=new Set(opts.topics);
+  if(opts.types)FREE.types=new Set(opts.types);
   FREE_ON=true;MODE='practice';FILTER=null;clearInterval(TIMER);$('#timer').textContent='';$('#timer').classList.remove('low');
   if(opts.topics||opts.types)saveFree();
   wipe('∞',opts.label||(PART?PART.nombre:'Práctica libre'),()=>{show('app');renderFree();nextCard(true)});
@@ -1086,27 +1088,54 @@ function renderFree(){
 function filterSummary(){
   const n=mixCount(FREE.types,FREE.topics);
   $('#fltSum').textContent=`${FREE.types.size} ${FREE.types.size===1?'tipo':'tipos'} · ${FREE.topics.size} ${FREE.topics.size===1?'tema':'temas'} · ${n} preguntas`;
-  $('#fltCount').innerHTML=n?`<b>${n}</b> preguntas en tu mezcla. Los cambios aplican desde la próxima pregunta.`:'Activa al menos un tipo y un tema.';
+  const ids=[...new Set(candidates())],vis=ids.filter(id=>FREE.seen.has(id)).length;
+  $('#fltCount').innerHTML=n?`<b>${n}</b> preguntas en tu mezcla · vistas <b>${vis}</b> de <b>${ids.length}</b>${ids.length-vis?'':' (la próxima empieza a repetir)'}. La pregunta de turno se actualiza con cada cambio.`:'Activa al menos un tipo y un tema.';
+}
+let FLT_T=0;
+function applyFilters(){
+  clearTimeout(FLT_T);
+  FLT_T=setTimeout(()=>{if(!FREE_ON)return;const c=FREE.card;
+    // la pregunta sin responder se descarta y no cuenta como vista
+    if(c&&REV.has(cardKey(c))){finalizeCard();saveCur()}
+    else if(c){FREE.seen.delete(c.id);FREE.hist.splice(FREE.pos,1);FREE.pos--}
+    FREE.hist.length=FREE.pos+1;pushNew();showCard(1)},320);
+}
+function repeatCard(){
+  const c=FREE.card;if(!FREE_ON||!c)return;finalizeCard();
+  const r=buildCard(c.id,c.pares);FREE.card=r;FREE.counted=false;
+  FREE.hist[FREE.pos]={c:r,ans:ANS,rev:REV,grades:GRADES,counted:false};
+  showCard(1);
 }
 function freeClick(b){
   const f=b.dataset.f,v=b.dataset.v;
   if(f==='toggle'){FREE.open=!FREE.open;$('#filters').classList.toggle('open',FREE.open);b.setAttribute('aria-expanded',FREE.open);saveFree();return}
   if(f==='next'){nextCard();return}
   if(f==='prev'){prevCard();return}
+  if(f==='repeat'){repeatCard();return}
   if(f==='type'||f==='topic'){const set=f==='type'?FREE.types:FREE.topics;set.has(v)?set.delete(v):set.add(v);b.classList.toggle('on',set.has(v));b.setAttribute('aria-pressed',set.has(v))}
   if(f==='gall'||f==='gnone'){const g=topicGroups()[+v];g.temas.forEach(t=>{f==='gall'?FREE.topics.add(t.id):FREE.topics.delete(t.id);const c=$(`.chip[data-f="topic"][data-v="${t.id}"]`);if(c){c.classList.toggle('on',f==='gall');c.setAttribute('aria-pressed',f==='gall')}})}
   if(f==='all'||f==='none'){const set=v==='type'?FREE.types:FREE.topics;set.clear();if(f==='all')(v==='type'?TYPE_ORDER.filter(t=>bankCount(t)):TOPICS.map(t=>t.id)).forEach(x=>set.add(x));$$(`.chip[data-f="${v}"]`).forEach(c=>{const on=set.has(c.dataset.v);c.classList.toggle('on',on);c.setAttribute('aria-pressed',on)})}
-  FREE.queue=[];saveFree();filterSummary();
-  if(!FREE.card&&candidates().length)nextCard();
+  saveFree();filterSummary();applyFilters();
 }
 function drawCard(){
   const cands=candidates();if(!cands.length)return null;
-  if(!FREE.queue.length){FREE.queue=shuf(cands);if(FREE.queue.length>1&&FREE.queue[FREE.queue.length-1]===FREE.last)FREE.queue.unshift(FREE.queue.pop())}
-  const id=FREE.queue.pop();FREE.last=id;const[tipo,idx]=id.split(':');const it=BANK[tipo][+idx];
+  const ids=[...new Set(cands)];let lap=0;
+  if(ids.every(id=>FREE.seen.has(id))){
+    // se agotó la mezcla: avisar y empezar una nueva vuelta
+    ids.forEach(id=>FREE.seen.delete(id));lap=ids.length;
+    toast(`Ya viste las ${ids.length} preguntas de estos filtros · empiezan a repetirse`);
+  }
+  let pool=cands.filter(id=>!FREE.seen.has(id));
+  if(new Set(pool).size>1)pool=pool.filter(id=>id!==FREE.last);
+  const id=pool[Math.random()*pool.length|0];FREE.last=id;FREE.seen.add(id);
+  const c=buildCard(id);c.lap=lap;return c;
+}
+function buildCard(id,pares){
+  const[tipo,idx]=id.split(':');const it=BANK[tipo][+idx];
   const si=FREE_SI++;const sec={titulo:it.titulo||DEFAULT_TITLES[tipo],instrucciones:it.instrucciones||DEFAULT_INS[tipo],explicacion:it.explicacion};
-  const S={si,sec,tipo,pts:it.puntos??DEF_PTS(tipo),units:[]};
+  const S={si,sec,tipo,pts:it.puntos??DEF_PTS(tipo),units:[]};let pairs=null;
   if(tipo==='pareo'){
-    const pairs=shuf(it.pares).slice(0,it.max||6);const used=[...new Set(pairs.map(p=>p.b))];
+    pairs=pares?shuf(pares):shuf(it.pares).slice(0,it.max||6);const used=[...new Set(pairs.map(p=>p.b))];
     const extra=shuf([...new Set(it.pares.map(p=>p.b).concat(it.distractores||[]))].filter(b=>!used.includes(b))).slice(0,it.extra??2);
     S.units=pairs.map((p,i)=>({key:`${si}-${i}`,a:p.a,b:p.b,img:p.imagen}));
     S.bs=shuf(used.concat(extra)).map((t,j)=>({letter:LET[j],text:t}));
@@ -1115,7 +1144,7 @@ function drawCard(){
   S.units.forEach((u,n)=>u.n=n+1);
   ATT={secs:[S],map:{}};S.units.forEach(u=>ATT.map[u.key]={S,u});CUR=0;
   ANS={};REV=new Set();GRADES={};ACTIVE_A=null;PEND_B=null;
-  return{S,tipo,it};
+  return{S,tipo,it,id,pares:pairs};
 }
 const cardKey=c=>c.S.tipo==='pareo'?'P'+c.S.si:c.S.units[0].key;
 const cardRevealed=()=>!!(FREE&&FREE.card&&REV.has(cardKey(FREE.card)));
@@ -1131,7 +1160,7 @@ function cardHTML(c){
   const S=c.S,it=c.it;
   const head=S.tipo==='pareo'?`<p class="q-p">${esc(S.sec.titulo)}</p><p class="fc-ins">${esc(S.sec.instrucciones)}</p>`:'';
   const body=S.tipo==='pareo'?pareoHTML(S):unitHTML(S,S.units[0]);
-  return `<div class="fcard in" id="fcard"><div class="fc-meta"><span><b>${TYPE_SHORT[S.tipo]}</b> · ${esc(topicName(it.tema))}</span><span>#${pad(FREE.pos+1)}</span></div>${head}${body}<div class="fc-foot"><div class="fc-left"><button class="btn" data-f="prev" id="fcPrev" ${FREE.pos<=0?'disabled':''}><i>←</i> Anterior</button><small id="fcHint"></small></div><button class="btn" data-f="next" id="fcNext">Saltar <i>→</i></button></div></div>`;
+  return `<div class="fcard in" id="fcard"><div class="fc-meta"><span><b>${TYPE_SHORT[S.tipo]}</b> · ${esc(topicName(it.tema))}</span><span>#${pad(FREE.pos+1)}</span></div>${c.lap?`<p class="fc-lap"><b>Mezcla completada</b> Ya viste las ${c.lap} preguntas de estos filtros; desde aquí empiezan a repetirse. Cambia los filtros para ver otras.</p>`:''}${head}${body}<div class="fc-foot"><div class="fc-left"><button class="btn" data-f="prev" id="fcPrev" ${FREE.pos<=0?'disabled':''}><i>←</i> Anterior</button><button class="btn" data-f="repeat" id="fcRepeat" title="Vuelve a hacer esta misma pregunta"><i>↻</i> Repetir</button><small id="fcHint"></small></div><button class="btn" data-f="next" id="fcNext">Saltar <i>→</i></button></div></div>`;
 }
 function saveCur(){const h=FREE.hist[FREE.pos];if(h){h.ans=ANS;h.rev=REV;h.grades=GRADES;h.counted=FREE.counted}}
 function loadEntry(h){FREE.card=h.c;ATT={secs:[h.c.S],map:{}};h.c.S.units.forEach(u=>ATT.map[u.key]={S:h.c.S,u});CUR=0;ANS=h.ans;REV=h.rev;GRADES=h.grades;FREE.counted=h.counted;ACTIVE_A=null;PEND_B=null}
@@ -1141,15 +1170,18 @@ async function showCard(dir,first){
   host.innerHTML=cardHTML(FREE.card);const fc=$('#fcard');if(fc&&dir<0){fc.classList.remove('in');fc.classList.add('back')}
   $$('.rv',host).forEach(e=>e.classList.add('in'));
   const p=$('.pareo',host);if(p)requestAnimationFrame(()=>drawLines(p));
-  syncFoot();freeChrome();
+  syncFoot();freeChrome();if($('#fltCount'))filterSummary();
   if(!first){const top=host.getBoundingClientRect().top;if(top<80||top>innerHeight*.55)window.scrollTo({top:scrollY+top-100,behavior:REDUCE?'auto':'smooth'})}
 }
 async function nextCard(first){
   if(!FREE_ON)return;finalizeCard();saveCur();
   if(FREE.pos<FREE.hist.length-1){FREE.pos++;loadEntry(FREE.hist[FREE.pos])}
-  else{const c=drawCard();FREE.card=c;FREE.counted=false;
-    if(c){FREE.hist.push({c,ans:ANS,rev:REV,grades:GRADES,counted:false});if(FREE.hist.length>60)FREE.hist.shift();FREE.pos=FREE.hist.length-1}}
+  else pushNew();
   await showCard(1,first);
+}
+function pushNew(){
+  const c=drawCard();FREE.card=c;FREE.counted=false;
+  if(c){FREE.hist.push({c,ans:ANS,rev:REV,grades:GRADES,counted:false});if(FREE.hist.length>60)FREE.hist.shift();FREE.pos=FREE.hist.length-1}
 }
 async function prevCard(){
   if(!FREE_ON||FREE.pos<=0)return;finalizeCard();saveCur();
