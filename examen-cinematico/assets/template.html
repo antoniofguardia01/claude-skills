@@ -548,6 +548,46 @@ const FX=(()=>{
           ctx.strokeStyle=col(f.c,(f.a+con*.25)*.7);ctx.lineWidth=con>.4?2:1;ctx.stroke()}
         for(const p of cells){p.x+=p.v*k*(1+beat*3);if(p.x>W+5){p.x=-5;p.y=R(H)}ctx.fillStyle=col(A2,.35);ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,6.2832);ctx.fill()}
       }}},
+    /* Sistema nervioso: red de neuronas con impulsos que recorren los axones */
+    neuronas(){let nd=[],ax=[],imp=[],cool=0;
+      const at=(e,u)=>{const A=nd[e.a],B=nd[e.b],i=1-u;return[i*i*A.x+2*i*u*e.cx+u*u*B.x,i*i*A.y+2*i*u*e.cy+u*u*B.y]};
+      const fire=(n,from)=>{nd[n].fire=1;for(const ei of nd[n].ax){if(ei===from||imp.length>110)continue;if(Math.random()<.55)imp.push({e:ei,rev:ax[ei].b===n,u:0,v:R(.006,.013)})}};
+      return{
+      init(){
+        nd=Array.from({length:Math.round(20*dens())},()=>({x:R(W*.05,W*.95),y:R(H*.07,H*.93),r:R(3,5.5),fire:0,ph:R(7),ax:[],
+          den:Array.from({length:5+(R(4)|0)},()=>({a:R(6.2832),l:R(14,34)}))}));
+        ax=[];
+        nd.forEach((a,i)=>{
+          const near=nd.map((b,j)=>({j,d:Math.hypot(a.x-b.x,a.y-b.y)})).filter(o=>o.j!==i).sort((p,q)=>p.d-q.d).slice(0,2);
+          for(const o of near){
+            if(ax.some(e=>(e.a===i&&e.b===o.j)||(e.a===o.j&&e.b===i)))continue;
+            const b=nd[o.j],dx=b.x-a.x,dy=b.y-a.y,m=Math.hypot(dx,dy)||1,bow=o.d*R(.06,.16)*(Math.random()<.5?-1:1);
+            ax.push({a:i,b:o.j,cx:(a.x+b.x)/2-dy/m*bow,cy:(a.y+b.y)/2+dx/m*bow})}
+        });
+        ax.forEach((e,i)=>{nd[e.a].ax.push(i);nd[e.b].ax.push(i)});
+        imp=[];cool=0},
+      frame(t,k){ctx.clearRect(0,0,W,H);
+        ctx.lineWidth=1;ctx.strokeStyle=col(INK,.11);ctx.beginPath();
+        for(const e of ax){const A=nd[e.a],B=nd[e.b];ctx.moveTo(A.x,A.y);ctx.quadraticCurveTo(e.cx,e.cy,B.x,B.y)}
+        ctx.stroke();
+        ctx.strokeStyle=col(INK,.085);ctx.beginPath();
+        for(const n of nd)for(const d of n.den){const w=Math.sin(t*.0012+n.ph+d.a)*2;ctx.moveTo(n.x,n.y);ctx.lineTo(n.x+Math.cos(d.a)*(d.l+w),n.y+Math.sin(d.a)*(d.l+w))}
+        ctx.stroke();
+        cool-=k;if(cool<=0&&nd.length){cool=R(9,24);fire(R(nd.length)|0,-1)}
+        if(mouse.x>-9000){let bi=-1,bd=130;nd.forEach((n,i)=>{const d=Math.hypot(n.x-mouse.x,n.y-mouse.y);if(d<bd){bd=d;bi=i}});
+          if(bi>=0&&nd[bi].fire<.2&&Math.random()<.07)fire(bi,-1)}
+        for(let i=imp.length-1;i>=0;i--){const p=imp[i],e=ax[p.e];p.u+=p.v*k;
+          if(p.u>=1){fire(p.rev?e.a:e.b,p.e);imp.splice(i,1);continue}
+          const u=p.rev?1-p.u:p.u,d=p.rev?1:-1,q=at(e,u),t1=at(e,Math.max(0,Math.min(1,u+d*.06))),t2=at(e,Math.max(0,Math.min(1,u+d*.14)));
+          ctx.lineCap='round';
+          ctx.lineWidth=1.5;ctx.strokeStyle=col(A1,.2);ctx.beginPath();ctx.moveTo(t2[0],t2[1]);ctx.lineTo(t1[0],t1[1]);ctx.stroke();
+          ctx.lineWidth=2.6;ctx.strokeStyle=col(A1,.6);ctx.beginPath();ctx.moveTo(t1[0],t1[1]);ctx.lineTo(q[0],q[1]);ctx.stroke();
+          ctx.lineCap='butt';
+          ctx.fillStyle=col(A1,1);ctx.shadowColor=col(A1,1);ctx.shadowBlur=16;ctx.beginPath();ctx.arc(q[0],q[1],3.2,0,6.2832);ctx.fill();ctx.shadowBlur=0}
+        for(const n of nd){if(n.fire>0)n.fire=Math.max(0,n.fire-.018*k);const f=n.fire;
+          if(f>0){ctx.fillStyle=col(A2,.1*f);ctx.beginPath();ctx.arc(n.x,n.y,n.r+10+12*f,0,6.2832);ctx.fill();ctx.shadowColor=col(A1,.8);ctx.shadowBlur=10*f}
+          ctx.fillStyle=f>0?col(A1,.5+.5*f):col(INK,.3);ctx.beginPath();ctx.arc(n.x,n.y,n.r+f*1.6,0,6.2832);ctx.fill();ctx.shadowBlur=0}
+      }}},
     /* Medicina / cardio / salud: electrocardiograma + barrido de escáner */
     pulso(){let prev=[],cur=[],x=0,grid=null,marks=[];return{
       init(){prev=[];cur=[];x=0;grid=document.createElement('canvas');grid.width=W*DPR;grid.height=H*DPR;const g=grid.getContext('2d');g.scale(DPR,DPR);g.strokeStyle=col(INK,.045);g.lineWidth=1;

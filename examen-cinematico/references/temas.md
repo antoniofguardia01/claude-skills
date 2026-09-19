@@ -11,6 +11,7 @@ Todas las URLs de fuentes están verificadas (responden 200). Si cambias una fue
 | `gimnasio` | Mancuernas, barras, pesas rusas y discos haciendo repeticiones, polvo de magnesio, cinta amarilla de seguridad y suelo de caucho | Educación física, deporte, entrenamiento, biomecánica, atletismo | El equipo cercano gira |
 | `fibras` | Haces musculares estriados que se contraen con pulsos | Anatomía, sistema muscular/esquelético, educación física, fisiología | Las fibras cerca del cursor se contraen |
 | `celulas` | Células con membrana ondulante, núcleo y organelos; vesículas que suben | Biología celular, genética, microbiología, ecología microscópica | Las células se apartan |
+| `neuronas` | Red de neuronas con dendritas y axones curvos; impulsos que viajan por los axones y encienden en cascada la neurona que alcanzan | Sistema nervioso, neurociencia, sinapsis, psicología fisiológica | La neurona más cercana al cursor dispara |
 | `pulso` | Electrocardiograma con brillo + barrido de escáner + retícula clínica | Sistema circulatorio, salud, enfermería, primeros auxilios, nutrición | — |
 | `constelacion` | Estrellas con paralaje, constelaciones, estrellas fugaces | Física, astronomía, sistema solar, óptica, química nuclear | Paralaje + líneas más brillantes cerca |
 | `moleculas` | Moléculas (anillos y cadenas) girando con símbolos atómicos | Química orgánica/inorgánica, bioquímica, materiales | La molécula cercana gira más rápido y se ilumina |
@@ -52,6 +53,14 @@ Todas las URLs de fuentes están verificadas (responden 200). Si cambias una fue
  "colores":{"fondo":"#04110d","panel":"#0a1c17","tinta":"#e8f5ee","suave":"#8fb3a4","acento":"#b6ff3b","acento2":"#3bf0c8","tintaAcento":"#0b1a00","bien":"#6ee7a8","mal":"#ff7a8a"},
  "glifos":["◉","⬡","∿","✦"]}
 ```
+
+### Sistema nervioso / neurociencia — `neuronas`
+```json
+{"motor":"neuronas","fuentes":{"href":"https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap","display":"Chakra Petch","body":"IBM Plex Sans","mono":"JetBrains Mono","displayPeso":700,"displayMayus":true,"displayTracking":"-.01em"},
+ "colores":{"fondo":"#0a0714","panel":"#150f24","tinta":"#f0ecfa","suave":"#a79cc4","acento":"#b388ff","acento2":"#45e0d0","tintaAcento":"#12001f","bien":"#5ae88f","mal":"#ff5c8a"},
+ "glifos":["⚡","∿","◉","✳","Na⁺","K⁺"],"atenuarFondo":0.4}
+```
+El `acento` pinta el impulso que viaja y el destello del soma; el `acento2`, el halo de la neurona que acaba de dispararse.
 
 ### Salud / sistema circulatorio — `pulso`
 ```json

@@ -17,7 +17,7 @@ const errors = [];
 const warns = [];
 const err = (m) => errors.push(m);
 
-const MOTORES = ['gimnasio', 'celulas', 'fibras', 'pulso', 'constelacion', 'moleculas', 'cuadricula', 'flujo', 'brasas', 'codigo', 'tinta'];
+const MOTORES = ['gimnasio', 'celulas', 'fibras', 'neuronas', 'pulso', 'constelacion', 'moleculas', 'cuadricula', 'flujo', 'brasas', 'codigo', 'tinta'];
 const TIPOS = ['seleccion', 'vf', 'completar', 'pareo', 'desarrollo'];
 const HEX = /^#[0-9a-f]{3}([0-9a-f]{3})?$/i;
 
