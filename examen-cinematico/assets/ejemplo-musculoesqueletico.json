@@ -1,0 +1,114 @@
+{
+  "tema": {
+    "motor": "fibras",
+    "fuentes": {
+      "href": "https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap",
+      "display": "Anton",
+      "body": "Archivo",
+      "mono": "JetBrains Mono",
+      "displayPeso": 400,
+      "displayMayus": true
+    },
+    "colores": {
+      "fondo": "#0b0707",
+      "panel": "#160e0e",
+      "tinta": "#f4ece6",
+      "suave": "#a89590",
+      "acento": "#ff4b3e",
+      "acento2": "#f2e3d0",
+      "tintaAcento": "#1a0503",
+      "bien": "#7cf2a8",
+      "mal": "#ff6b9a"
+    },
+    "glifos": ["✚", "◆", "✳", "◐"],
+    "atenuarFondo": 0.45
+  },
+  "examen": {
+    "materia": "Biología XII",
+    "curso": "Unidad · Sistema músculo-esquelético",
+    "etiqueta": "Parcial de repaso",
+    "titulo": "Sistema Músculo-Esquelético",
+    "tituloLineas": ["Sistema", "Músculo-", "Esquelético"],
+    "estiloUltimaLinea": "hl",
+    "descripcion": "Fibras, huesos, articulaciones y la química de la contracción. Responde como en el examen real y revisa cada error con su explicación.",
+    "duracion": 30,
+    "escala": { "min": 1, "max": 5, "aprobado": 3 },
+    "terminos": ["Sarcómero", "Actina", "Miosina", "Troponina", "Hematopoyesis", "Esqueleto axial", "Rótula", "Bursa", "Acetilcolina", "Osteoporosis"],
+    "secciones": [
+      {
+        "tipo": "seleccion",
+        "titulo": "Selección única",
+        "instrucciones": "Lea el enunciado y seleccione la letra que corresponde a la respuesta correcta.",
+        "puntos": 1,
+        "items": [
+          { "tema": "Sistema muscular", "pregunta": "¿Qué estructura une un músculo al hueso y transmite su fuerza?", "opciones": ["Tendón", "Ligamento", "Bursa", "Cartílago articular"], "correcta": 0, "explicacion": "El tendón conecta músculo con hueso; el ligamento conecta hueso con hueso." },
+          { "tema": "Contracción", "pregunta": "En reposo, ¿qué proteína bloquea el sitio de unión de la miosina en la actina?", "opciones": ["Troponina", "Tropomiosina", "Actina", "ATP"], "correcta": 1, "explicacion": "La tropomiosina cubre el sitio de unión; la troponina, al unirse al calcio, la desplaza." },
+          { "tema": "Contracción", "pregunta": "¿Qué neurotransmisor libera la neurona motora en la unión neuromuscular?", "opciones": ["Dopamina", "Adrenalina", "Acetilcolina (ACh)", "Insulina"], "correcta": 2 },
+          { "tema": "Esqueleto", "pregunta": "¿Qué división incluye columna vertebral, cabeza y caja torácica?", "opciones": ["Esqueleto apendicular", "Esqueleto axial", "Sistema articular", "Médula roja"], "correcta": 1 },
+          { "tema": "Funciones", "pregunta": "¿Qué proceso produce y desarrolla células sanguíneas?", "opciones": ["Osmosis", "Ventilación", "Digestión", "Hematopoyesis"], "correcta": 3, "explicacion": "Ocurre en la médula ósea roja del hueso esponjoso." },
+          { "tema": "Clasificación de huesos", "pregunta": "¿Cuál es el hueso sesamoideo más grande?", "opciones": ["Clavícula", "Rótula", "Cúbito", "Sacro"], "correcta": 1 },
+          { "tema": "Afecciones", "pregunta": "¿Qué síndrome implica pérdida progresiva de masa y fuerza de músculo esquelético?", "opciones": ["Sarcopenia", "Osteoporosis", "Artritis", "Bursitis"], "correcta": 0 },
+          { "tema": "Sistema muscular", "pregunta": "La membrana celular de la fibra muscular es el…", "opciones": ["Sarcoplasma", "Sarcómero", "Sarcolema", "Fascículo"], "correcta": 2 }
+        ]
+      },
+      {
+        "tipo": "vf",
+        "titulo": "Verdadero o falso",
+        "puntos": 1,
+        "items": [
+          { "afirmacion": "El esqueleto humano adulto tiene típicamente 206 huesos.", "respuesta": true },
+          { "afirmacion": "La miosina es el filamento delgado del sarcómero.", "respuesta": false, "explicacion": "La miosina es el filamento grueso; la actina es el delgado." },
+          { "afirmacion": "En el movimiento, el músculo es la parte activa y el hueso la parte pasiva.", "respuesta": true },
+          { "afirmacion": "La escápula es un ejemplo de hueso corto.", "respuesta": false, "explicacion": "La escápula es un hueso plano; el carpo es un ejemplo de hueso corto." },
+          { "afirmacion": "El tejido óseo es uno de los tres tipos de tejido muscular.", "respuesta": false, "explicacion": "Los tres tipos son liso, cardíaco y esquelético." }
+        ]
+      },
+      {
+        "tipo": "pareo",
+        "titulo": "Pareo",
+        "instrucciones": "Relacione cada estructura (columna A) con su descripción (columna B). Hay opciones que no se utilizan.",
+        "puntos": 1,
+        "pares": [
+          { "a": "Sarcolema", "b": "Membrana celular de la fibra muscular" },
+          { "a": "Sarcoplasma", "b": "Citoplasma de la fibra muscular" },
+          { "a": "Miofibrillas", "b": "Estructuras largas que se agrupan en sarcómeros" },
+          { "a": "Fascículo", "b": "Conjunto de fibras musculares" },
+          { "a": "Ligamento", "b": "Estabiliza los huesos y refuerza la articulación" },
+          { "a": "Bursa", "b": "Pequeña bolsa con líquido sinovial" }
+        ],
+        "distractores": ["Une el músculo con el hueso", "Filamento grueso de la contracción"]
+      },
+      {
+        "tipo": "completar",
+        "titulo": "Complete los espacios",
+        "banco": true,
+        "distractores": ["cartílago", "insulina"],
+        "puntos": 1,
+        "items": [
+          { "texto": "Las unidades funcionales de las miofibrillas donde ocurre la contracción son los ___.", "respuestas": [["sarcómeros", "sarcomeros", "sarcómero"]] },
+          { "texto": "Los huesos almacenan principalmente calcio y ___.", "respuestas": [["fósforo", "fosforo"]] },
+          { "texto": "El calcio se libera desde el retículo ___ y se une a la ___.", "respuestas": [["sarcoplásmico", "sarcoplasmico"], ["troponina"]] },
+          { "texto": "La inflamación de una bursa se llama ___.", "respuestas": [["bursitis"]] }
+        ]
+      },
+      {
+        "tipo": "desarrollo",
+        "titulo": "Desarrollo",
+        "puntos": 3,
+        "items": [
+          {
+            "pregunta": "Explica paso a paso cómo se contrae una fibra muscular esquelética desde que llega la señal nerviosa.",
+            "respuesta": "El potencial de acción viaja por el axón de la neurona motora hasta la unión neuromuscular, donde se libera acetilcolina (ACh) en la hendidura sináptica. La ACh se une a receptores del sarcolema y genera un impulso que provoca la liberación de calcio desde el retículo sarcoplásmico. El calcio se une a la troponina, que desplaza a la tropomiosina y deja libres los sitios de unión de la actina. Las cabezas de miosina se unen a la actina y, usando ATP, la deslizan: los sarcómeros se acortan y el músculo se contrae.",
+            "claves": ["acetilcolina|ach", "sarcolema", "calcio", "reticulo sarcoplasmico", "troponina", "tropomiosina", "actina", "miosina", "atp"],
+            "pista": "Nervio → ACh → calcio → proteínas → deslizamiento"
+          },
+          {
+            "pregunta": "Compara el esqueleto axial y el apendicular: ¿qué huesos incluye cada uno?",
+            "respuesta": "El esqueleto axial forma el eje del cuerpo: cabeza (cráneo), columna vertebral y caja torácica (costillas y esternón). El esqueleto apendicular comprende las cinturas escapular (hombro) y pélvica, junto con las extremidades superiores e inferiores.",
+            "claves": ["eje", "columna", "craneo|cabeza", "caja toracica|costillas", "hombro|escapular", "pelvica|pelvis", "extremidades"]
+          }
+        ]
+      }
+    ]
+  }
+}

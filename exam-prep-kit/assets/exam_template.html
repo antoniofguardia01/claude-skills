@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>[TÍTULO DEL EXAMEN] — Práctica Infinita</title>
+<!--
+  PLANTILLA — assets/exam_template.html (exam-prep-kit skill)
+
+  Cómo usar esta plantilla:
+  1. Copia este archivo, cambia el <title> y el texto del <h1>/.sub en <body>.
+  2. Reemplaza TOPICS con los temas reales de la materia (uno por sección
+     principal de la guía de estudio suele ser lo correcto).
+  3. Reemplaza SELECCION, PAREO_SETS, FILLBLANK y ORDER_EXERCISES con
+     contenido real basado en los apuntes del estudiante. Cada ítem debe
+     tener un array `topics` cuyos ids existan en TOPICS.
+  4. Si subieron un examen de muestra del profesor, ajusta la redacción de
+     las instrucciones (`<span class="instr">`) para que coincida con su
+     estilo exacto. Ver references/exam_format_patterns.md.
+  5. No toques el motor (CSS + funciones renderX/checkX/engine al final)
+     salvo que necesites un tipo de pregunta nuevo — en ese caso sigue el
+     mismo patrón (bloque de datos + render + check + CSS) que los cuatro
+     existentes.
+  6. Valida con scripts/validate_question_bank.js antes de entregar.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#F6F1E7;
+    --paper:#FFFDF8;
+    --navy:#1F3864;
+    --navy-deep:#132646;
+    --crimson:#9C2B2B;
+    --crimson-soft:#F4DCDC;
+    --gold:#C79A3E;
+    --ink:#26221B;
+    --ink-soft:#5B564C;
+    --line:#DDD3BE;
+    --good:#2E7D4F;
+    --good-soft:#DCEFE2;
+    --bad:#B23A3A;
+    --bad-soft:#F7DEDE;
+    --radius:10px;
+  }
+  /* NOTE: the --navy/--crimson/--gold palette below is just a starting
+     point (worked well for a Panama secondary-school biology context).
+     Feel free to pick different CSS variable values to match the subject
+     or the school's colors — everything below references these variables,
+     so a palette swap is a one-block edit. */
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{ max-width:820px; margin:0 auto; padding:28px 20px 80px; }
+
+  .masthead{
+    display:flex; align-items:center; gap:16px;
+    border-bottom:3px solid var(--navy);
+    padding-bottom:16px; margin-bottom:18px;
+  }
+  .seal{ width:54px;height:54px;flex:0 0 auto; }
+  .masthead h1{
+    font-family:'Fraunces',serif; font-weight:700; font-size:26px;
+    color:var(--navy-deep); margin:0 0 2px 0; letter-spacing:-0.01em;
+  }
+  .masthead .sub{
+    font-size:13px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.08em;
+  }
+
+  .board{ display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+  .stat{
+    background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+    padding:10px 16px; flex:1; min-width:110px;
+  }
+  .stat .n{ font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:500; color:var(--navy-deep); line-height:1.1; }
+  .stat .l{ font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.06em; margin-top:2px; }
+  .stat.streak .n{ color:var(--crimson); }
+
+  .filter-toggle{
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+    padding:11px 16px; margin-bottom:10px; cursor:pointer; font-size:13.5px; font-weight:600; color:var(--navy-deep);
+  }
+  .filter-toggle .count{ font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:12px; color:var(--ink-soft); }
+  .filter-toggle .arrow{ transition:transform .2s; font-size:11px; color:var(--ink-soft); }
+  .filter-toggle.open .arrow{ transform:rotate(180deg); }
+  .filter-panel{
+    display:none; background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+    padding:16px 18px 6px; margin-bottom:16px;
+  }
+  .filter-panel.open{ display:block; }
+  .filter-group-title{ font-size:11px; text-transform:uppercase; letter-spacing:.07em; font-weight:700; color:var(--ink-soft); margin-bottom:8px; }
+  .chip-row{ display:flex; flex-wrap:wrap; gap:7px; margin-bottom:16px; }
+  .chip{
+    font-size:12.5px; font-weight:600; padding:6px 13px; border-radius:20px;
+    border:1.5px solid var(--line); background:var(--paper); color:var(--ink-soft);
+    cursor:pointer; user-select:none; transition:all .12s;
+  }
+  .chip:hover{ border-color:var(--navy); }
+  .chip.active{ background:var(--navy); border-color:var(--navy); color:#fff; }
+  .chip.active.topic{ background:var(--crimson); border-color:var(--crimson); }
+  .filter-actions{ display:flex; gap:8px; padding-bottom:14px; }
+  .filter-actions button{ font-size:12px; padding:6px 14px; }
+  .filter-empty-msg{ font-size:12.5px; color:var(--bad); font-style:italic; margin-bottom:8px; display:none; }
+  .filter-empty-msg.show{ display:block; }
+
+  .card{
+    background:var(--paper); border:1px solid var(--line); border-radius:14px;
+    box-shadow:0 1px 3px rgba(31,56,100,0.06), 0 8px 24px rgba(31,56,100,0.05); overflow:hidden;
+  }
+  .card-head{
+    background:var(--navy); color:#fff; padding:12px 22px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+  }
+  .card-head .tag{ font-size:11px; text-transform:uppercase; letter-spacing:.09em; font-weight:600; color:#EADFC6; }
+  .card-head .topic-badge{ font-size:10.5px; background:rgba(255,255,255,0.14); padding:3px 10px; border-radius:20px; color:#fff; }
+  .card-head .pts{ font-family:'IBM Plex Mono',monospace; font-size:12px; background:rgba(255,255,255,0.12); padding:3px 10px; border-radius:20px; }
+  .card-body{ padding:26px 26px 22px; }
+  .prompt{ font-family:'Fraunces',serif; font-size:19px; font-weight:600; color:var(--ink); line-height:1.45; margin-bottom:20px; }
+  .prompt .instr{ display:block; font-family:'Inter',sans-serif; font-weight:400; font-style:italic; font-size:13.5px; color:var(--ink-soft); margin-bottom:8px; }
+
+  .opt{
+    display:flex; align-items:flex-start; gap:12px; border:1.5px solid var(--line); border-radius:8px;
+    padding:12px 14px; margin-bottom:10px; cursor:pointer; transition:border-color .15s, background .15s; background:var(--paper);
+  }
+  .opt:hover{border-color:var(--navy);}
+  .opt .letter{
+    font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:14px; width:22px;height:22px; border-radius:50%;
+    border:1.5px solid var(--navy); color:var(--navy); display:flex;align-items:center;justify-content:center; flex:0 0 auto;
+  }
+  .opt.selected{border-color:var(--navy); background:#EEF2FA;}
+  .opt.selected .letter{background:var(--navy); color:#fff;}
+  .opt.correct{border-color:var(--good); background:var(--good-soft);}
+  .opt.correct .letter{background:var(--good); border-color:var(--good); color:#fff;}
+  .opt.incorrect{border-color:var(--bad); background:var(--bad-soft);}
+  .opt.incorrect .letter{background:var(--bad); border-color:var(--bad); color:#fff;}
+  .opt-text{font-size:15px; padding-top:1px;}
+
+  .bank{
+    background:#FBF7EC; border:1px solid var(--gold); border-radius:8px; padding:12px 16px;
+    margin-bottom:18px; font-size:13.5px; line-height:1.9;
+  }
+  .bank .bank-title{ font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-soft); margin-bottom:6px; font-weight:600; }
+  .bank code{
+    font-family:'IBM Plex Mono',monospace; font-weight:500; background:#fff; border:1px solid var(--line);
+    border-radius:4px; padding:1px 6px; margin-right:5px; color:var(--navy-deep);
+  }
+  .pareo-row{ display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px dashed var(--line); }
+  .pareo-row:last-child{border-bottom:none;}
+  .pareo-input{
+    width:70px; flex:0 0 auto; text-align:center; text-transform:uppercase; font-family:'IBM Plex Mono',monospace;
+    font-size:14px; padding:7px 4px; border:1.5px solid var(--line); border-radius:6px; background:var(--paper);
+  }
+  .pareo-input:focus{outline:none; border-color:var(--navy);}
+  .pareo-input.correct{border-color:var(--good); background:var(--good-soft); color:var(--good);}
+  .pareo-input.incorrect{border-color:var(--bad); background:var(--bad-soft); color:var(--bad);}
+  .pareo-desc{font-size:14.5px; line-height:1.4;}
+  .pareo-answer-hint{font-size:12px; color:var(--good); margin-left:4px; font-family:'IBM Plex Mono',monospace;}
+
+  .fill-sentence{ font-size:16.5px; line-height:2.1; }
+  .fill-input{
+    display:inline-block; min-width:150px; border:none; border-bottom:2px solid var(--navy); background:transparent;
+    font-family:'Inter',sans-serif; font-size:16px; font-weight:600; color:var(--navy-deep); padding:2px 4px; text-align:center;
+  }
+  .fill-input:focus{outline:none; border-color:var(--crimson);}
+  .fill-input.correct{border-color:var(--good); color:var(--good); background:var(--good-soft);}
+  .fill-input.incorrect{border-color:var(--bad); color:var(--bad); background:var(--bad-soft);}
+
+  .order-item{
+    display:flex; align-items:center; gap:12px; border:1.5px solid var(--line); border-radius:8px;
+    padding:10px 14px; margin-bottom:8px; background:var(--paper);
+  }
+  .order-num{
+    width:48px; flex:0 0 auto; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:14px;
+    padding:6px 2px; border:1.5px solid var(--line); border-radius:6px;
+  }
+  .order-num:focus{outline:none; border-color:var(--navy);}
+  .order-num.correct{border-color:var(--good); background:var(--good-soft); color:var(--good);}
+  .order-num.incorrect{border-color:var(--bad); background:var(--bad-soft); color:var(--bad);}
+  .order-text{font-size:14.5px;}
+
+  .feedback{ margin-top:18px; padding:14px 16px; border-radius:8px; font-size:14px; line-height:1.55; display:none; }
+  .feedback.show{display:block;}
+  .feedback.ok{background:var(--good-soft); border:1px solid var(--good); color:#1E5C39;}
+  .feedback.bad{background:var(--bad-soft); border:1px solid var(--bad); color:#7E2727;}
+  .feedback b{color:inherit;}
+
+  .controls{ display:flex; gap:10px; padding:16px 26px 22px; background:#FBFAF6; border-top:1px solid var(--line); }
+  button{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:14px; padding:11px 22px; border-radius:8px;
+    border:none; cursor:pointer; transition:transform .08s, opacity .15s;
+  }
+  button:active{transform:scale(0.97);}
+  .btn-primary{ background:var(--navy); color:#fff; }
+  .btn-primary:hover{background:var(--navy-deep);}
+  .btn-secondary{ background:transparent; color:var(--navy); border:1.5px solid var(--navy); }
+  .btn-secondary:hover{background:#EEF2FA;}
+  button:disabled{opacity:0.45; cursor:not-allowed;}
+
+  .empty-state{ padding:40px 26px; text-align:center; color:var(--ink-soft); font-size:14.5px; }
+  footer{ text-align:center; font-size:12px; color:var(--ink-soft); margin-top:26px; }
+
+  @media (max-width:480px){
+    .masthead h1{font-size:21px;}
+    .card-body{padding:20px 18px 18px;}
+    .controls{padding:14px 18px 18px; flex-wrap:wrap;}
+    button{flex:1;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <svg class="seal" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M32 4 L56 13 V30 C56 46 46 56 32 60 C18 56 8 46 8 30 V13 Z" fill="#1F3864" stroke="#C79A3E" stroke-width="2"/>
+      <path d="M32 16 C36 22 42 24 46 24 C46 36 40 46 32 50 C24 46 18 36 18 24 C22 24 28 22 32 16Z" fill="#F6F1E7" stroke="#C79A3E" stroke-width="1.3"/>
+      <circle cx="32" cy="30" r="4.2" fill="#9C2B2B"/>
+      <path d="M32 22 V38 M24 30 H40" stroke="#9C2B2B" stroke-width="1.6"/>
+    </svg>
+    <div>
+      <h1>[TÍTULO DEL EXAMEN] — Práctica Infinita</h1>
+      <div class="sub">Selección única · Pareo · Espacios · Ordenar</div>
+    </div>
+  </div>
+
+  <div class="board">
+    <div class="stat"><div class="n" id="statTotal">0</div><div class="l">Preguntas</div></div>
+    <div class="stat"><div class="n" id="statCorrect">0</div><div class="l">Correctas</div></div>
+    <div class="stat"><div class="n" id="statPct">—</div><div class="l">Precisión</div></div>
+    <div class="stat streak"><div class="n" id="statStreak">0</div><div class="l">Racha</div></div>
+  </div>
+
+  <div class="filter-toggle" id="filterToggle">
+    <span>🎛️ Filtrar por tipo de pregunta y tema</span>
+    <span class="count" id="filterCount"></span>
+    <span class="arrow">▾</span>
+  </div>
+  <div class="filter-panel" id="filterPanel">
+    <div class="filter-group-title">Tipo de pregunta</div>
+    <div class="chip-row" id="typeChips"></div>
+    <div class="filter-group-title">Tema</div>
+    <div class="chip-row" id="topicChips"></div>
+    <div class="filter-empty-msg" id="filterEmptyMsg">No hay preguntas disponibles con esta combinación de filtros. Prueba activando más opciones.</div>
+    <div class="filter-actions">
+      <button class="btn-secondary" id="btnSelectAll">Seleccionar todo</button>
+      <button class="btn-secondary" id="btnClearAll">Limpiar</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <span class="tag" id="cardTag">Cargando…</span>
+      <span class="topic-badge" id="cardTopic"></span>
+      <span class="pts" id="cardPts"></span>
+    </div>
+    <div class="card-body" id="cardBody"></div>
+    <div class="controls" id="controls">
+      <button class="btn-primary" id="btnCheck">Comprobar</button>
+      <button class="btn-secondary" id="btnNext" disabled>Siguiente pregunta →</button>
+    </div>
+  </div>
+
+  <footer>Preparado a partir de tus apuntes · practica hasta que domines cada tema</footer>
+</div>
+
+<script>
+/* =============================================================
+   BANCO DE DATOS — reemplaza todo este bloque con el contenido
+   real de la materia. Deja intacto el motor más abajo
+   (a partir de "TYPE_META").
+   ============================================================= */
+
+/* Un id de tema por sección principal de la guía de estudio.
+   Usa ids cortos en minúsculas sin espacios. */
+const TOPICS = [
+  {id:"tema1", label:"Tema 1 — [nombre]"},
+  {id:"tema2", label:"Tema 2 — [nombre]"},
+];
+
+/* Selección única: 3-4 opciones, `a` = índice (0-based) de la correcta. */
+const SELECCION = [
+  {q:"[Pregunta de ejemplo — reemplazar]", opts:["Opción A","Opción B","Opción C","Opción D"], a:0, topics:["tema1"]},
+  {q:"[Otra pregunta de ejemplo]", opts:["Opción A","Opción B","Opción C"], a:2, topics:["tema2"]},
+];
+
+/* Pareo: banco de códigos (2 letras sugerido) + lista de enunciados.
+   Incluye 1-3 códigos del banco que NO se usan (distractores), como en
+   los exámenes reales. */
+const PAREO_SETS = [
+  {
+    titulo:"[Nombre del set de pareo]",
+    topics:["tema1"],
+    banco:[
+      {code:"AB",term:"Término 1"},{code:"CD",term:"Término 2"},
+      {code:"EF",term:"Término 3"},{code:"GH",term:"Término no usado (distractor)"}
+    ],
+    items:[
+      {desc:"[Enunciado que describe el Término 1]", code:"AB"},
+      {desc:"[Enunciado que describe el Término 2]", code:"CD"},
+      {desc:"[Enunciado que describe el Término 3]", code:"EF"},
+    ]
+  },
+];
+
+/* Llenar espacios: usa exactamente "___" como marcador del hueco.
+   `ans` es un array de respuestas aceptadas (el checker ignora
+   mayúsculas/acentos/espacios extra, pero no sinónimos no listados). */
+const FILLBLANK = [
+  {sent:"[Frase con un ___ para completar.]", ans:["respuesta"], topics:["tema1"]},
+];
+
+/* Ordenar: `correct` en el orden correcto, `distractors` son pasos que
+   NO pertenecen a la secuencia (se muestran mezclados igual). */
+const ORDER_EXERCISES = [
+  {
+    titulo:"[Nombre de la secuencia]",
+    nota:"Ordena del 1 al N los pasos correctos. Hay opciones que no se usan.",
+    topics:["tema2"],
+    correct:["[Paso 1]","[Paso 2]","[Paso 3]"],
+    distractors:["[Paso que no pertenece a esta secuencia]"]
+  },
+];
+
+/* =============================================================
+   MOTOR — no modificar salvo para añadir un tipo de pregunta nuevo.
+   ============================================================= */
+
+const TYPE_META = {
+  seleccion:{label:"Selección única", tag:"I · Selección única", pts:"5 pts"},
+  pareo:{label:"Pareo", tag:"II · Pareo", pts:"10 pts"},
+  fill:{label:"Espacios", tag:"III · Complete los espacios", pts:"5 pts"},
+  order:{label:"Ordenar", tag:"IV · Ordenar", pts:"10 pts"},
+};
+const TYPES = Object.keys(TYPE_META);
+
+let filters = {
+  types: new Set(TYPES),
+  topics: new Set(TOPICS.map(t=>t.id)),
+};
+
+function poolFor(type){
+  if(type==="seleccion") return SELECCION;
+  if(type==="pareo") return PAREO_SETS;
+  if(type==="fill") return FILLBLANK;
+  if(type==="order") return ORDER_EXERCISES;
+}
+
+function itemMatchesTopics(item){
+  return item.topics.some(t=>filters.topics.has(t));
+}
+
+function filteredIndices(type){
+  const pool = poolFor(type);
+  const out = [];
+  pool.forEach((item,i)=>{ if(itemMatchesTopics(item)) out.push(i); });
+  return out;
+}
+
+function availableTypes(){
+  return TYPES.filter(t=>filters.types.has(t) && filteredIndices(t).length>0);
+}
+
+function buildFilterChips(){
+  const typeBox = document.getElementById("typeChips");
+  typeBox.innerHTML = "";
+  TYPES.forEach(t=>{
+    const chip = document.createElement("div");
+    chip.className = "chip" + (filters.types.has(t)?" active":"");
+    chip.textContent = TYPE_META[t].label;
+    chip.onclick = ()=>{
+      if(filters.types.has(t)) filters.types.delete(t); else filters.types.add(t);
+      onFiltersChanged();
+    };
+    chip.dataset.type = t;
+    typeBox.appendChild(chip);
+  });
+
+  const topicBox = document.getElementById("topicChips");
+  topicBox.innerHTML = "";
+  TOPICS.forEach(tp=>{
+    const chip = document.createElement("div");
+    chip.className = "chip topic" + (filters.topics.has(tp.id)?" active":"");
+    chip.textContent = tp.label;
+    chip.onclick = ()=>{
+      if(filters.topics.has(tp.id)) filters.topics.delete(tp.id); else filters.topics.add(tp.id);
+      onFiltersChanged();
+    };
+    chip.dataset.topic = tp.id;
+    topicBox.appendChild(chip);
+  });
+}
+
+function refreshChipStates(){
+  document.querySelectorAll("#typeChips .chip").forEach(c=>{
+    c.classList.toggle("active", filters.types.has(c.dataset.type));
+  });
+  document.querySelectorAll("#topicChips .chip").forEach(c=>{
+    c.classList.toggle("active", filters.topics.has(c.dataset.topic));
+  });
+}
+
+function updateFilterCount(){
+  const n = availableTypes().reduce((sum,t)=>sum+filteredIndices(t).length,0);
+  document.getElementById("filterCount").textContent = n + (n===1?" pregunta disponible":" preguntas disponibles");
+}
+
+function onFiltersChanged(){
+  refreshChipStates();
+  updateFilterCount();
+  queues = {};
+  renderQuestion();
+}
+
+document.getElementById("filterToggle").addEventListener("click", ()=>{
+  document.getElementById("filterToggle").classList.toggle("open");
+  document.getElementById("filterPanel").classList.toggle("open");
+});
+document.getElementById("btnSelectAll").addEventListener("click", ()=>{
+  filters.types = new Set(TYPES);
+  filters.topics = new Set(TOPICS.map(t=>t.id));
+  onFiltersChanged();
+});
+document.getElementById("btnClearAll").addEventListener("click", ()=>{
+  filters.types = new Set();
+  filters.topics = new Set();
+  onFiltersChanged();
+});
+
+let queues = {};
+let stats = {total:0, correct:0, streak:0};
+let current = null;
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function nextIndex(type){
+  if(!queues[type] || queues[type].length===0){
+    queues[type] = shuffle(filteredIndices(type));
+  }
+  return queues[type].pop();
+}
+
+function normalize(s){
+  return s.toLowerCase().trim()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/\s+/g," ");
+}
+
+function pickType(){
+  const avail = availableTypes();
+  if(avail.length===0) return null;
+  return avail[Math.floor(Math.random()*avail.length)];
+}
+
+function topicLabel(id){
+  const t = TOPICS.find(t=>t.id===id);
+  return t ? t.label : id;
+}
+
+function renderQuestion(){
+  const emptyMsg = document.getElementById("filterEmptyMsg");
+  const type = pickType();
+
+  if(type===null){
+    emptyMsg.classList.add("show");
+    document.getElementById("cardTag").textContent = "Sin resultados";
+    document.getElementById("cardTopic").textContent = "";
+    document.getElementById("cardPts").textContent = "";
+    document.getElementById("cardBody").innerHTML = `<div class="empty-state">No hay preguntas disponibles con los filtros actuales.<br>Activa más tipos o temas para continuar practicando.</div>`;
+    document.getElementById("controls").style.display = "none";
+    current = null;
+    return;
+  }
+  emptyMsg.classList.remove("show");
+  document.getElementById("controls").style.display = "flex";
+
+  const idx = nextIndex(type);
+  current = {type, idx, checked:false};
+  const data = poolFor(type)[idx];
+
+  document.getElementById("cardTag").textContent = TYPE_META[type].tag;
+  document.getElementById("cardPts").textContent = TYPE_META[type].pts;
+  document.getElementById("cardTopic").textContent = data.topics.map(topicLabel).join(" · ");
+  document.getElementById("btnCheck").disabled = false;
+  document.getElementById("btnCheck").textContent = "Comprobar";
+  document.getElementById("btnNext").disabled = true;
+
+  const body = document.getElementById("cardBody");
+  body.innerHTML = "";
+
+  if(type==="seleccion") renderSeleccion(body, data);
+  if(type==="pareo") renderPareo(body, data);
+  if(type==="fill") renderFill(body, data);
+  if(type==="order") renderOrder(body, data);
+}
+
+function addFeedback(container){
+  const fb = document.createElement("div");
+  fb.className = "feedback";
+  fb.id = "feedback";
+  container.appendChild(fb);
+  return fb;
+}
+
+function renderSeleccion(body, item){
+  const p = document.createElement("div");
+  p.className = "prompt";
+  p.innerHTML = `<span class="instr">Lea el enunciado y seleccione la respuesta correcta.</span>${item.q}`;
+  body.appendChild(p);
+
+  const letters = ["A","B","C","D"];
+  const order = shuffle(item.opts.map((_,i)=>i));
+  const optionsBox = document.createElement("div");
+  optionsBox.id = "optionsBox";
+  order.forEach((origIdx, pos)=>{
+    const div = document.createElement("div");
+    div.className = "opt";
+    div.dataset.orig = origIdx;
+    div.innerHTML = `<span class="letter">${letters[pos]}</span><span class="opt-text">${item.opts[origIdx]}</span>`;
+    div.onclick = ()=>{
+      if(current.checked) return;
+      [...optionsBox.children].forEach(c=>c.classList.remove("selected"));
+      div.classList.add("selected");
+    };
+    optionsBox.appendChild(div);
+  });
+  body.appendChild(optionsBox);
+  addFeedback(body);
+}
+
+function checkSeleccion(){
+  const item = SELECCION[current.idx];
+  const optionsBox = document.getElementById("optionsBox");
+  const selected = [...optionsBox.children].find(c=>c.classList.contains("selected"));
+  const fb = document.getElementById("feedback");
+  if(!selected){
+    fb.className = "feedback bad show";
+    fb.innerHTML = "Selecciona una opción antes de comprobar.";
+    return null;
+  }
+  const correctDiv = [...optionsBox.children].find(c=>parseInt(c.dataset.orig)===item.a);
+  const isCorrect = parseInt(selected.dataset.orig)===item.a;
+  correctDiv.classList.add("correct");
+  if(!isCorrect) selected.classList.add("incorrect");
+  [...optionsBox.children].forEach(c=>c.onclick=null);
+  fb.className = "feedback " + (isCorrect?"ok":"bad") + " show";
+  fb.innerHTML = isCorrect ? "<b>¡Correcto!</b>" : `<b>Incorrecto.</b> La respuesta correcta es: ${item.opts[item.a]}`;
+  return isCorrect;
+}
+
+function renderPareo(body, set){
+  const p = document.createElement("div");
+  p.className = "prompt";
+  p.innerHTML = `<span class="instr">Lea los enunciados y escriba el código del banco de palabras que corresponde. Los términos pueden repetirse o no utilizarse.</span>${set.titulo}`;
+  body.appendChild(p);
+
+  const bank = document.createElement("div");
+  bank.className = "bank";
+  const bankShuffled = shuffle(set.banco);
+  bank.innerHTML = `<div class="bank-title">Banco de palabras</div>` +
+    bankShuffled.map(b=>`<code>${b.code}</code>${b.term}`).join("&nbsp;&nbsp;");
+  body.appendChild(bank);
+
+  const rowsBox = document.createElement("div");
+  rowsBox.id = "pareoRows";
+  const itemsShuffled = shuffle(set.items);
+  itemsShuffled.forEach((it)=>{
+    const row = document.createElement("div");
+    row.className = "pareo-row";
+    row.dataset.code = it.code;
+    row.innerHTML = `<input class="pareo-input" maxlength="4" placeholder="—">
+      <span class="pareo-desc">${it.desc}</span>`;
+    rowsBox.appendChild(row);
+  });
+  body.appendChild(rowsBox);
+  addFeedback(body);
+}
+
+function checkPareo(){
+  const rows = [...document.querySelectorAll("#pareoRows .pareo-row")];
+  let correctCount = 0;
+  rows.forEach(row=>{
+    const input = row.querySelector(".pareo-input");
+    const given = normalize(input.value).toUpperCase().replace(/\s+/g,"");
+    const correctCode = row.dataset.code.toUpperCase();
+    if(given === correctCode){
+      input.classList.add("correct");
+      correctCount++;
+    } else {
+      input.classList.add("incorrect");
+      const hint = document.createElement("span");
+      hint.className = "pareo-answer-hint";
+      hint.textContent = `(correcto: ${correctCode})`;
+      row.appendChild(hint);
+    }
+    input.disabled = true;
+  });
+  const fb = document.getElementById("feedback");
+  const allCorrect = correctCount === rows.length;
+  fb.className = "feedback " + (allCorrect?"ok":"bad") + " show";
+  fb.innerHTML = `<b>${correctCount} de ${rows.length} correctas.</b>`;
+  return allCorrect;
+}
+
+function renderFill(body, item){
+  const p = document.createElement("div");
+  p.className = "prompt";
+  p.innerHTML = `<span class="instr">Complete el espacio con la respuesta correcta.</span>`;
+  body.appendChild(p);
+
+  const sentBox = document.createElement("div");
+  sentBox.className = "fill-sentence";
+  sentBox.innerHTML = item.sent.replace("___", `<input type="text" class="fill-input" id="fillInput" autocomplete="off">`);
+  body.appendChild(sentBox);
+  addFeedback(body);
+}
+
+function checkFill(){
+  const item = FILLBLANK[current.idx];
+  const input = document.getElementById("fillInput");
+  const given = normalize(input.value);
+  const isCorrect = item.ans.some(a=>normalize(a)===given) && given.length>0;
+  input.classList.add(isCorrect?"correct":"incorrect");
+  input.disabled = true;
+  const fb = document.getElementById("feedback");
+  fb.className = "feedback " + (isCorrect?"ok":"bad") + " show";
+  fb.innerHTML = isCorrect ? "<b>¡Correcto!</b>" : `<b>Incorrecto.</b> Respuesta esperada: ${item.ans[0]}`;
+  return isCorrect;
+}
+
+function renderOrder(body, ex){
+  const p = document.createElement("div");
+  p.className = "prompt";
+  p.innerHTML = `<span class="instr">${ex.nota}</span>${ex.titulo}`;
+  body.appendChild(p);
+
+  const all = shuffle(ex.correct.map((t,i)=>({text:t, correctPos:i+1})).concat(
+    ex.distractors.map(t=>({text:t, correctPos:null}))
+  ));
+
+  const box = document.createElement("div");
+  box.id = "orderBox";
+  all.forEach(item=>{
+    const row = document.createElement("div");
+    row.className = "order-item";
+    row.dataset.correct = item.correctPos===null ? "" : item.correctPos;
+    row.innerHTML = `<input type="text" class="order-num" maxlength="2" placeholder="#">
+      <span class="order-text">${item.text}</span>`;
+    box.appendChild(row);
+  });
+  body.appendChild(box);
+  addFeedback(body);
+}
+
+function checkOrder(){
+  const rows = [...document.querySelectorAll("#orderBox .order-item")];
+  let correctCount = 0;
+  rows.forEach(row=>{
+    const input = row.querySelector(".order-num");
+    const given = input.value.trim();
+    const correct = row.dataset.correct;
+    const isRight = (correct==="" && given==="") || (given===correct);
+    input.classList.add(isRight?"correct":"incorrect");
+    if(!isRight){
+      const hint = document.createElement("span");
+      hint.className = "pareo-answer-hint";
+      hint.textContent = correct==="" ? "(no se usa)" : `(correcto: ${correct})`;
+      row.appendChild(hint);
+    }
+    if(isRight) correctCount++;
+    input.disabled = true;
+  });
+  const fb = document.getElementById("feedback");
+  const allCorrect = correctCount === rows.length;
+  fb.className = "feedback " + (allCorrect?"ok":"bad") + " show";
+  fb.innerHTML = `<b>${correctCount} de ${rows.length} correctas.</b>`;
+  return allCorrect;
+}
+
+function updateStats(isCorrect){
+  stats.total++;
+  if(isCorrect){ stats.correct++; stats.streak++; }
+  else { stats.streak = 0; }
+  document.getElementById("statTotal").textContent = stats.total;
+  document.getElementById("statCorrect").textContent = stats.correct;
+  document.getElementById("statStreak").textContent = stats.streak;
+  document.getElementById("statPct").textContent = stats.total? Math.round(100*stats.correct/stats.total)+"%" : "—";
+}
+
+document.getElementById("btnCheck").addEventListener("click", ()=>{
+  if(!current || current.checked) return;
+  let isCorrect = null;
+  if(current.type==="seleccion") isCorrect = checkSeleccion();
+  else if(current.type==="pareo") isCorrect = checkPareo();
+  else if(current.type==="fill") isCorrect = checkFill();
+  else if(current.type==="order") isCorrect = checkOrder();
+
+  if(isCorrect===null) return;
+
+  current.checked = true;
+  updateStats(isCorrect);
+  document.getElementById("btnCheck").disabled = true;
+  document.getElementById("btnNext").disabled = false;
+});
+
+document.getElementById("btnNext").addEventListener("click", renderQuestion);
+
+buildFilterChips();
+updateFilterCount();
+renderQuestion();
+</script>
+</body>
+</html>

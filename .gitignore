@@ -1,0 +1,22 @@
+# Este repo = mis skills propias. Todo lo nuevo que crees en esta carpeta se sube solo.
+# Aquí se excluyen las skills de terceros (instaladas de otros repos/plugins).
+brandkit/
+brutalist-skill/
+gpt-tasteskill/
+image-to-code-skill/
+imagegen-frontend-mobile/
+imagegen-frontend-web/
+impeccable/
+minimalist-skill/
+output-skill/
+redesign-skill/
+soft-skill/
+stitch-skill/
+taste-skill/
+taste-skill-v1/
+
+# Ruido
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db

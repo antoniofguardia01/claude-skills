@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITULO}}</title>
+<meta name="description" content="{{DESCRIPCION}}">
+<meta name="theme-color" content="#051628">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23051628'/%3E%3Cpath d='M12 38h34l6-8H44v-8h-8v-6h-6v14H14z' fill='%23eef3f8'/%3E%3Cpath d='M8 46q6-4 12 0t12 0 12 0 12 0' stroke='%236fc9d8' stroke-width='3' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="engine/deck.css?v=1">
+<style>
+  /* ===== Dirección de arte del deck (ver references/direccion-de-arte.md) ===== */
+  :root {
+    --bg-0: #07182b;
+    --bg-1: #0d2742;
+    --ink: #eef3f8;
+    --ink-2: #b3c6d8;
+    --ink-3: #7892ab;
+    --accent: #e0303f;
+    --accent-2: #5cc6d6;
+    --glass: rgba(6, 26, 48, .78);
+  }
+  /* estilos propios del deck aquí */
+</style>
+</head>
+<body data-fondo="ondas" data-tono="equilibrado">
+
+<canvas id="fondo" aria-hidden="true"></canvas>
+<div class="velo"></div>
+<div class="grano"></div>
+<div id="puertas" aria-hidden="true"><i></i><i></i></div>
+
+<!-- Sprite de iconos de línea -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-timon" viewBox="0 0 100 100"><circle cx="50" cy="50" r="30"/><circle cx="50" cy="50" r="24"/><circle cx="50" cy="50" r="7"/><g stroke-linecap="round"><path d="M50 4v39M50 57v39M4 50h39M57 50h39M17.5 17.5l27.6 27.6M54.9 54.9l27.6 27.6M82.5 17.5 54.9 45.1M45.1 54.9 17.5 82.5"/></g><g><circle cx="50" cy="4" r="3"/><circle cx="50" cy="96" r="3"/><circle cx="4" cy="50" r="3"/><circle cx="96" cy="50" r="3"/></g></symbol>
+    <symbol id="i-ancla" viewBox="0 0 64 64"><circle cx="32" cy="10" r="5"/><path d="M32 15v42M20 24h24M10 38c2 12 12 19 22 19s20-7 22-19M10 38l-4 5M10 38l6 2M54 38l4 5M54 38l-6 2"/></symbol>
+    <symbol id="i-helice" viewBox="0 0 64 64"><circle cx="32" cy="32" r="5"/><path d="M32 27C28 14 34 6 40 8s4 14-8 19M37 32c13-4 21 2 19 8s-14 4-19-8M32 37c4 13-2 21-8 19s-4-14 8-19M27 32C14 36 6 30 8 24s14-4 19 8"/></symbol>
+    <symbol id="i-brujula" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26"/><circle cx="32" cy="32" r="20" stroke-dasharray="2 4"/><path d="M32 12 38 32 32 52 26 32Z"/><path d="M12 32h6M46 32h6M32 6v4M32 54v4"/></symbol>
+    <symbol id="i-sello" viewBox="0 0 64 64"><path d="M14 6h28l10 10v42H14z"/><path d="M42 6v10h10M22 24h20M22 31h20M22 38h12"/><circle cx="42" cy="46" r="7"/><path d="M38 52l-2 8 6-3 6 3-2-8"/></symbol>
+    <symbol id="i-radio" viewBox="0 0 64 64"><path d="M32 30v28M24 58h16M32 30l-10 28M32 30l10 28"/><circle cx="32" cy="26" r="4"/><path d="M22 16a14 14 0 0 0 0 20M42 16a14 14 0 0 1 0 20M15 9a24 24 0 0 0 0 34M49 9a24 24 0 0 1 0 34"/></symbol>
+    <symbol id="i-escudo" viewBox="0 0 64 64"><path d="M32 6 52 13v17c0 14-9 23-20 28C21 53 12 44 12 30V13Z"/><path d="m23 31 6 6 12-13"/></symbol>
+    <symbol id="i-salvavidas" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26"/><circle cx="32" cy="32" r="12"/><path d="M14 14l9 9M50 14l-9 9M14 50l9-9M50 50l-9-9"/></symbol>
+    <symbol id="i-docs" viewBox="0 0 64 64"><path d="M18 12h24l10 10v36H18z"/><path d="M42 12v10h10M12 18v42h32M26 30h18M26 37h18M26 44h12"/></symbol>
+    <symbol id="i-clip" viewBox="0 0 64 64"><rect x="14" y="10" width="36" height="48" rx="3"/><path d="M24 10V6h16v4M22 26h20M22 34h20M22 42h12"/><path d="m36 46 4 4 8-9"/></symbol>
+    <symbol id="i-balanza" viewBox="0 0 64 64"><path d="M32 8v48M20 56h24M12 18h40M32 12a3 3 0 1 0 0 .1"/><path d="M12 18 5 36h14ZM52 18l-7 18h14Z"/><path d="M5 36a7 5 0 0 0 14 0M45 36a7 5 0 0 0 14 0"/></symbol>
+    <symbol id="i-carta" viewBox="0 0 64 64"><path d="M6 12l16-6 20 6 16-6v46l-16 6-20-6-16 6z"/><path d="M22 6v46M42 12v46"/><path d="M12 38c6-2 8-10 16-8s8 10 16 6 6-10 12-10" stroke-dasharray="2 3"/></symbol>
+    <symbol id="i-flecha" viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-atras" viewBox="0 0 24 24"><path d="M20 12H5m6-6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  </defs>
+</svg>
+
+<header class="ui ui-top">
+  <div class="ui-brand">
+    <img src="img/logo-claro.png" alt="{{MARCA}}">
+    <span class="sep"></span><span class="deck-name">{{TITULO_CORTO}}</span>
+  </div>
+  <div class="ui-count"><b>01</b><span>/ 30</span></div>
+</header>
+
+<main id="viewport"><div id="stage">
+
+<!-- 01 · PORTADA -->
+<section class="slide" data-titulo="{{TITULO_CORTO}}" style="justify-content:center">
+  <span class="kicker" data-a="right">{{KICKER}}</span>
+  <h1 class="h-hero mt-m" data-split>{{TITULO}}</h1>
+  <div data-a="line" style="width:130px;height:4px;background:var(--accent);margin:38px 0 30px"></div>
+  <p class="lead" data-a="up">{{AUTOR}}</p>
+</section>
+
+<!-- 02 · CONTENIDO -->
+<section class="slide" data-seccion data-titulo="…">
+  <div class="head">
+    <span class="kicker" data-a="right">…</span>
+    <h2 class="h-l" data-split>…</h2>
+  </div>
+  <div class="grid g-3">
+    <article class="card accent-top" data-a="up"><h3>…</h3><p>…</p></article>
+  </div>
+</section>
+
+</div></main>
+
+<footer class="ui ui-bottom">
+  <div class="ruta" aria-label="Progreso"></div>
+  <div class="ui-btns">
+    <button class="ui-btn" data-accion="ant" aria-label="Anterior"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+    <button class="ui-btn" data-accion="sig" aria-label="Siguiente"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+    <button class="ui-btn opt" data-accion="vista" aria-label="Vista general (O)"><svg viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>
+    <button class="ui-btn opt" data-accion="full" aria-label="Pantalla completa (F)"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>
+    <button class="ui-btn opt" data-accion="ayuda" aria-label="Atajos (?)"><svg viewBox="0 0 24 24"><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 1-1 1.7v.5M12 17h.01" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>
+  </div>
+</footer>
+
+<div id="overview"></div>
+<div id="lightbox" role="dialog" aria-label="Imagen ampliada"><img alt=""><button class="ui-btn cerrar" aria-label="Cerrar">✕</button></div>
+<div id="ayuda"><kbd>→</kbd>Siguiente<br><kbd>←</kbd>Anterior<br><kbd>O</kbd>Vista general<br><kbd>F</kbd>Pantalla completa<br><kbd>12</kbd>Ir a la slide 12<br><kbd>Esc</kbd>Cerrar</div>
+
+<script>
+  window.DECK = {
+    extremos: null,          // p. ej. ["Atlántico", "Pacífico"] — etiquetas a los lados de la ruta
+    marcador: null           // SVG (~46x22) que avanza por la ruta, p. ej. un barco, un tren, un cohete
+  };
+</script>
+<script src="engine/deck.js?v=1"></script>
+<script src="engine/fondos.js?v=1"></script>
+</body>
+</html>
