@@ -8,7 +8,7 @@ description: Crea exámenes de repaso interactivos con estética cinematográfic
 Genera **un solo archivo HTML** (vanilla, sin dependencias salvo Google Fonts) con:
 
 1. **Portada** a pantalla completa en una sola vista: título gigante que entra línea a línea, marco que se dibuja, datos reales del examen (preguntas, secciones, puntos, tiempo), botón circular giratorio **Comenzar examen**, accesos a **Modo repaso** y **Por secciones**, y cinta de términos clave en movimiento.
-2. **Fondo animado temático** en canvas que reacciona al mouse (10 motores, ver `references/temas.md`), grano de película, viñeta, cursor personalizado y botones magnéticos.
+2. **Fondo animado temático** en canvas que reacciona al mouse (10 motores, ver `references/temas.md`), grano de película, viñeta, cursor personalizado, botones magnéticos y botón de **pantalla completa** arriba a la derecha (entra y sale, se oculta si el navegador no lo permite).
 3. **Examen** por secciones con barra superior fija (navegación por sección con progreso, cronómetro o cuenta regresiva, entregar), portadas de sección con número gigante y título con efecto "scramble", transiciones de barrido a pantalla completa entre secciones.
 4. **Cinco tipos de sección**: `seleccion`, `vf`, `completar`, `pareo`, `desarrollo`.
 5. **Tres modos**: *Examen* (sin feedback hasta entregar), *Repaso* (feedback inmediato por pregunta), *Revisión* (todo corregido con explicaciones).

@@ -36,6 +36,14 @@ body.in-app #bg{opacity:var(--bg-dim,.5)}
 .grain{position:absolute;inset:-60%;opacity:.075;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");animation:grain 1.2s steps(6) infinite}
 body.light .grain{opacity:.16;mix-blend-mode:multiply;filter:invert(1)}
 @keyframes grain{0%{transform:translate(0,0)}17%{transform:translate(-4%,3%)}33%{transform:translate(3%,-5%)}50%{transform:translate(-6%,-2%)}67%{transform:translate(5%,4%)}83%{transform:translate(-2%,6%)}100%{transform:translate(0,0)}}
+#fsBtn{position:fixed;top:clamp(10px,2vw,20px);right:clamp(10px,2vw,20px);z-index:65;width:38px;height:38px;display:grid;place-items:center;border:1px solid var(--line-strong);background:var(--glass);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:var(--ink);font-size:16px;line-height:1;border-radius:50%;transition:border-color .3s,color .3s,transform .3s var(--out)}
+#fsBtn:hover{border-color:var(--accent);color:var(--accent);transform:scale(1.08)}
+body.in-app .topbar{padding-right:calc(clamp(12px,2.4vw,30px) + 46px)}
+@media (max-width:720px){
+  #fsBtn{width:30px;height:30px;font-size:13px;top:10px;right:8px}
+  body.in-app .topbar{padding-right:44px}
+  body.in-app .tb-r{gap:8px;min-width:0}
+}
 #cursor{position:fixed;left:0;top:0;width:34px;height:34px;margin:-17px 0 0 -17px;border:1px solid var(--accent);border-radius:50%;z-index:90;pointer-events:none;opacity:0;transition:width .35s var(--out),height .35s var(--out),margin .35s var(--out),background .35s,opacity .3s}
 #cursor.hot{width:64px;height:64px;margin:-32px 0 0 -32px;background:color-mix(in srgb,var(--accent) 18%,transparent)}
 @media (pointer:fine){body.cursor-on.cursor-moved #cursor{opacity:1}}
@@ -60,6 +68,7 @@ body.light .grain{opacity:.16;mix-blend-mode:multiply;filter:invert(1)}
 .i-top{position:relative;display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:start;font:500 11.5px/1.35 var(--fm);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:6px 10px}
 .i-top>*:nth-child(2){text-align:center}.i-top>*:nth-child(3){text-align:right}
 .i-top b{color:var(--ink);font-weight:600}
+.i-top{padding-right:52px}  /* hueco para el botón de pantalla completa */
 .fade{opacity:0;transform:translateY(12px)}
 .play .fade{opacity:1;transform:none;transition:opacity .9s var(--out) var(--d,0s),transform .9s var(--out) var(--d,0s)}
 .i-main{position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 10px;min-height:0}
@@ -396,6 +405,7 @@ dialog.sim .actions{margin-top:22px}
 <body>
 <div id="bg" aria-hidden="true"><video id="bgvideo" muted loop playsinline preload="auto"></video><canvas id="fx"></canvas><div class="vignette"></div><div class="grain"></div></div>
 <div id="cursor" aria-hidden="true"></div>
+<button id="fsBtn" class="mag" type="button" aria-label="Ver en pantalla completa" title="Ver en pantalla completa">⛶</button>
 <div id="wipe" aria-hidden="true"><b id="wipeBig"></b><small id="wipeSmall"></small></div>
 
 <!-- ============ INICIO ============ -->
@@ -1082,6 +1092,21 @@ function burst(){
     const a=Math.random()*6.283,d=120+Math.random()*340;s.animate([{transform:'translate(-50%,-50%) scale(.2)',opacity:1},{transform:`translate(calc(-50% + ${Math.cos(a)*d}px),calc(-50% + ${Math.sin(a)*d+120}px)) rotate(${Math.random()*540-270}deg) scale(${.6+Math.random()*1.2})`,opacity:0}],{duration:1400+Math.random()*900,easing:'cubic-bezier(.16,1,.3,1)'}).finished.then(()=>s.remove())}
 }
 
+/* ================= PANTALLA COMPLETA ================= */
+function fsFx(){
+  const b=$('#fsBtn');if(!b)return;
+  const upd=()=>{const on=!!(document.fullscreenElement||document.webkitFullscreenElement),label=on?'Salir de pantalla completa':'Ver en pantalla completa';b.textContent=on?'\u2922':'\u26f6';b.title=label;b.setAttribute('aria-label',label)};
+  b.addEventListener('click',()=>{
+    const el=document.documentElement;
+    if(document.fullscreenElement||document.webkitFullscreenElement){(document.exitFullscreen||document.webkitExitFullscreen)?.call(document)?.catch?.(()=>{})}
+    else{(el.requestFullscreen||el.webkitRequestFullscreen)?.call(el)?.catch?.(()=>{})}
+  });
+  document.addEventListener('fullscreenchange',upd);
+  document.addEventListener('webkitfullscreenchange',upd);
+  if(!(document.fullscreenEnabled||document.webkitFullscreenEnabled))b.style.display='none';
+  upd();
+}
+
 /* ================= MODO LIBRE (banco infinito + filtros) ================= */
 let FREE_ON=false, FREE=null, FREE_SI=1000, EXAM_DUR=EX.duracion||0, LAST_SIM=null;
 let FKEY=STORE_KEY+':libre';
@@ -1308,7 +1333,7 @@ function wireIntro(){
   $('#pkList').addEventListener('click',e=>{const pp=e.target.closest('[data-part]');if(pp){closePicker();startFree({part:+pp.dataset.part});return}const t=e.target.closest('[data-topic]');if(t){closePicker();startFree({topics:[t.dataset.topic],label:topicName(t.dataset.topic)});return}const r=e.target.closest('[data-sec]');if(!r)return;closePicker();startApp('practice',+r.dataset.sec)});
   wireSim();
 }
-applyTheme();buildIntro();wireIntro();wireApp();cursorFx();
+applyTheme();buildIntro();wireIntro();wireApp();cursorFx();fsFx();
 const ready=document.fonts&&document.fonts.ready?Promise.race([document.fonts.ready,new Promise(r=>setTimeout(r,1800))]):Promise.resolve();
 ready.then(()=>{fitTitle();FX.start();requestAnimationFrame(()=>$('#intro').classList.add('play'))});
 })();
