@@ -1,6 +1,6 @@
 ---
 name: examen-cinematico
-description: Crea exámenes de repaso interactivos con estética cinematográfica — una sola página HTML con portada animada a pantalla completa, fondo animado temático (células, fibras musculares, moléculas, estrellas, código, mapas, cuaderno…), tipografía display llamativa y transiciones, más secciones de selección única, verdadero/falso, completar espacios, pareo columna A/B con líneas que conectan y desarrollo con respuesta modelo y autoevaluación, con resultados, nota y "repetir falladas". Úsala cuando el usuario pida "usa la skill de examen", "hazme un examen cool/animado/bonito", "un examen interactivo de <tema>", "examen con pareo y desarrollo", "quiero repasar para el examen de <tema>" con algo visual, o pase apuntes/PDF/temas y quiera un examen para practicar que se vea profesional. Si pide además una guía de estudio en Word, combínala con exam-prep-kit.
+description: Crea exámenes de repaso interactivos con estética cinematográfica — una sola página HTML con portada animada a pantalla completa, fondo animado temático (células, fibras musculares, moléculas, estrellas, código, mapas, cuaderno…), tipografía display llamativa y transiciones, más secciones de selección única, verdadero/falso, completar espacios, ordenar los pasos de un proceso (en biología), pareo columna A/B con líneas que conectan y desarrollo con respuesta modelo y autoevaluación, con resultados, nota y "repetir falladas". Úsala cuando el usuario pida "usa la skill de examen", "hazme un examen cool/animado/bonito", "un examen interactivo de <tema>", "examen con pareo y desarrollo", "quiero repasar para el examen de <tema>" con algo visual, o pase apuntes/PDF/temas y quiera un examen para practicar que se vea profesional. Si pide además una guía de estudio en Word, combínala con exam-prep-kit.
 ---
 
 # Examen cinemático
@@ -10,7 +10,7 @@ Genera **un solo archivo HTML** (vanilla, sin dependencias salvo Google Fonts) c
 1. **Portada** a pantalla completa en una sola vista: título gigante que entra línea a línea, marco que se dibuja, datos reales del examen (preguntas, secciones, puntos, tiempo), botón circular giratorio **Comenzar examen**, accesos a **Modo repaso** y **Por secciones**, y cinta de términos clave en movimiento.
 2. **Fondo animado temático** en canvas que reacciona al mouse (10 motores, ver `references/temas.md`), grano de película, viñeta, cursor personalizado, botones magnéticos y botón de **pantalla completa** arriba a la derecha (entra y sale, se oculta si el navegador no lo permite).
 3. **Examen** por secciones con barra superior fija (navegación por sección con progreso, cronómetro o cuenta regresiva, entregar), portadas de sección con número gigante y título con efecto "scramble", transiciones de barrido a pantalla completa entre secciones.
-4. **Cinco tipos de sección**: `seleccion`, `vf`, `completar`, `pareo`, `desarrollo`.
+4. **Seis tipos de sección**: `seleccion`, `vf`, `completar`, `pareo`, `desarrollo` y `ordenar` (este último **solo en exámenes de biología**, ver abajo).
 5. **Tres modos**: *Examen* (sin feedback hasta entregar), *Repaso* (feedback inmediato por pregunta), *Revisión* (todo corregido con explicaciones).
 6. **Resultados**: porcentaje animado, veredicto, puntos, nota en escala configurable, barras por sección, explosión de glifos si aprueba, **Repetir falladas** (arma un repaso solo con lo que se falló), nuevo intento (rebaraja), mejor puntaje guardado.
 
@@ -56,6 +56,8 @@ Crea `<carpeta-de-salida>/examen.json` con `{ "tema": {...}, "examen": {...} }`.
     {"tipo": "vf", "items": [{"afirmacion": "…", "respuesta": false, "explicacion": "…"}]},
     {"tipo": "completar", "banco": true, "distractores": ["…"],
      "items": [{"texto": "El ___ bombea sangre hacia la ___.", "respuestas": [["corazón","corazon"], ["aorta"]]}]},
+    {"tipo": "ordenar", "puntos": 2,       // SOLO biología: procesos con pasos en secuencia
+     "items": [{"enunciado": "Ordene los pasos de la sinapsis.", "pasos": ["Primer paso…", "Segundo paso…", "Tercero…"], "explicacion": "…"}]},
     {"tipo": "pareo", "instrucciones": "…", "pares": [{"a": "Concepto", "b": "Definición"}], "distractores": ["Definición que sobra"]},
     {"tipo": "desarrollo", "puntos": 3,
      "items": [{"pregunta": "…", "respuesta": "Respuesta modelo completa…", "claves": ["idea 1", "sinónimo a|sinónimo b"], "pista": "opcional"}]}
@@ -63,12 +65,13 @@ Crea `<carpeta-de-salida>/examen.json` con `{ "tema": {...}, "examen": {...} }`.
 }
 ```
 
-`titulo`, `instrucciones` y `puntos` de cada sección son opcionales (hay textos por defecto; `puntos` = 1, o 3 en desarrollo). Puedes repetir tipos (dos secciones de selección sobre subtemas distintos, dos pareos).
+`titulo`, `instrucciones` y `puntos` de cada sección son opcionales (hay textos por defecto; `puntos` = 1, 2 en ordenar, 3 en desarrollo). Puedes repetir tipos (dos secciones de selección sobre subtemas distintos, dos pareos).
 
 **Calidad del contenido — lo que hace que el repaso sirva:**
 - **Cantidad**: un examen normal ≈ 20–40 ítems en 4–5 secciones. Sigue el formato del profesor si hay uno. Incluye todos los tipos que pidió el usuario; por defecto: selección, V/F, pareo, completar y desarrollo.
 - **Selección**: 4 opciones plausibles del mismo tipo gramatical y longitud parecida; distractores con los errores reales que cometen los estudiantes (términos que se confunden), nunca opciones absurdas. Varía la posición de la correcta (igual se baraja). Evita "todas las anteriores" (se rompe al barajar).
 - **V/F**: ~mitad falsas; las falsas cambian un solo detalle clave. `explicacion` obligatoria en las falsas, diciendo lo correcto.
+- **Ordenar (solo biología)**: úsalo **solo si el examen es de biología** —y solo para procesos que de verdad tienen una secuencia: potencial de acción, sinapsis, mitosis y meiosis, fotosíntesis, digestión, coagulación, respuesta inmune, ciclo celular, recorrido de la sangre o del estímulo nervioso. En cualquier otra materia no lo incluyas. El alumno toca los pasos en el orden en que ocurren y se puntúa por pasos en su lugar, así que: 4–6 pasos (nunca más de 8), cada paso una frase corta y autocontenida, **`pasos` va en el orden correcto** (la plantilla los baraja sola y nunca los muestra ya resueltos), sin dos pasos intercambiables y sin pistas de orden dentro del texto ("primero…", "después…"). Si el material trae el proceso numerado (apuntes, diagrama o video), respeta esa numeración. Vale un `ordenar` por proceso; 1–3 en todo el examen.
 - **Pareo**: 5–8 pares por bloque + 1–3 `distractores` del mismo campo. Columna A corta (término), B descriptiva. Un bloque por subtema.
 - **Completar**: un espacio (`___`, 3+ guiones bajos) por concepto clave; `respuestas` con variantes aceptables (sin tilde, singular/plural). La corrección ya ignora mayúsculas, tildes y puntuación, pero no sinónimos. `banco: true` muestra las palabras (útil si el profesor lo hace así).
 - **Desarrollo**: `respuesta` modelo como la escribiría un estudiante de 10; 4–9 `claves` (ideas que el profesor buscaría), cada una con alternativas `|` sin tildes ni mayúsculas necesarias (`"acetilcolina|ach"`). La nota sugerida sale de cuántas claves aparecen; el estudiante la confirma con Completa/Parcial/Me faltó.
@@ -84,10 +87,11 @@ Crea `<carpeta-de-salida>/examen.json` con `{ "tema": {...}, "examen": {...} }`.
   "temas": [{"id": "somatotipos", "nombre": "Somatotipos"}, ...],
   "accesos": [{"texto": "Movimientos articulares", "detalle": "Solo la tabla ↗", "temas": ["mov-..."], "tipos": ["pareo"]}], // atajos en la portada (opcional)
   "tituloLibre": "Entrena", "subtituloLibre": "sin reloj",
-  "simulacro": {"pesos": {"seleccion": .36, "vf": .22, "completar": .18, "pareo": .16, "desarrollo": .08}}, // opcional
+  "simulacro": {"pesos": {"seleccion": .36, "vf": .22, "completar": .18, "ordenar": .14, "pareo": .16, "desarrollo": .08}}, // opcional
   "banco": {
     "seleccion": [{"tema": "somatotipos", "pregunta": "…", "opciones": [...], "correcta": 0, "explicacion": "…", "imagen": "img/x.jpg"}],
     "vf": [{"tema": "…", ...}], "completar": [{"tema": "…", ...}], "desarrollo": [{"tema": "…", ...}],
+    "ordenar": [{"tema": "…", "enunciado": "…", "pasos": ["…", "…", "…"], "explicacion": "…"}], // solo biología
     "pareo": [{"tema": "…", "titulo": "Imagen ↔ movimiento", "instrucciones": "…", "max": 6,
                "pares": [{"a": "Texto"}|{"imagen": "img/x.jpg", "a": ""}, "b": "…"], "distractores": ["…"]}]
   }
@@ -111,7 +115,7 @@ El script valida estructura (índices, espacios vs. respuestas, distractores que
 ### 5. Verifica en el navegador
 Abre `index.html` en el navegador integrado (`preview_start` con `url` file:///…; la carpeta debe estar dentro del proyecto). Si una captura sale solo con el fondo, la pestaña estaba en segundo plano: tráela al frente (`tabs_select`) y recarga. Revisa:
 - Portada: el título cabe completo (tildes visibles), nada se superpone con el botón circular, se ve el fondo animado.
-- Entra al examen, responde algo en cada tipo (en pareo une 2–3 pares y confirma que aparecen las líneas), entrega y mira resultados y revisión.
+- Entra al examen, responde algo en cada tipo (en pareo une 2–3 pares y confirma que aparecen las líneas; en ordenar toca los pasos y comprueba que se numeran y que "Reiniciar" los limpia), entrega y mira resultados y revisión.
 - Repite la portada y una sección con `resize_window` preset `mobile`; al terminar vuelve a `desktop`.
 - `read_console_messages` sin errores.
 

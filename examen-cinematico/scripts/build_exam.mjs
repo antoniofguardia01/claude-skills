@@ -18,7 +18,7 @@ const warns = [];
 const err = (m) => errors.push(m);
 
 const MOTORES = ['gimnasio', 'celulas', 'fibras', 'neuronas', 'pulso', 'constelacion', 'moleculas', 'cuadricula', 'flujo', 'brasas', 'codigo', 'tinta'];
-const TIPOS = ['seleccion', 'vf', 'completar', 'pareo', 'desarrollo'];
+const TIPOS = ['seleccion', 'vf', 'completar', 'ordenar', 'pareo', 'desarrollo'];
 const HEX = /^#[0-9a-f]{3}([0-9a-f]{3})?$/i;
 
 const { tema, examen } = data;
@@ -84,6 +84,14 @@ if (examen) {
       const blanks = (String(it.texto || '').match(/_{3,}/g) || []).length;
       if (!blanks) err(`${w}: "texto" necesita al menos un ___ .`);
       if (!Array.isArray(it.respuestas) || it.respuestas.length !== blanks) err(`${w}: hay ${blanks} espacios pero ${(it.respuestas || []).length} respuestas.`);
+    } else if (tipo === 'ordenar') {
+      if (!it.enunciado) err(`${w}: falta "enunciado".`);
+      if (!Array.isArray(it.pasos) || it.pasos.length < 3) err(`${w}: "pasos" necesita 3 o más, en el orden correcto.`);
+      else {
+        if (it.pasos.some((x) => typeof x !== 'string' || !x.trim())) err(`${w}: hay pasos vacíos o que no son texto.`);
+        if (new Set(it.pasos.map((x) => String(x).trim().toLowerCase())).size !== it.pasos.length) err(`${w}: hay pasos repetidos.`);
+        if (it.pasos.length > 8) warns.push(`${w}: ${it.pasos.length} pasos es mucho para ordenar; 4-6 funciona mejor.`);
+      }
     } else if (tipo === 'desarrollo') {
       if (!it.pregunta) err(`${w}: falta "pregunta".`);
       if (!it.respuesta) err(`${w}: falta "respuesta" modelo.`);
@@ -93,7 +101,7 @@ if (examen) {
   (examen.secciones || []).forEach((s, si) => {
     const at = `secciones[${si}] (${s.tipo})`;
     if (!TIPOS.includes(s.tipo)) { err(`${at}: tipo inválido. Opciones: ${TIPOS.join(', ')}`); return; }
-    const p = s.puntos ?? (s.tipo === 'desarrollo' ? 3 : 1);
+    const p = s.puntos ?? (s.tipo === 'desarrollo' ? 3 : s.tipo === 'ordenar' ? 2 : 1);
     if (s.tipo === 'pareo') {
       if (!checkPareo(s, at)) return;
       if (s.pares.length > 12) warns.push(`${at}: ${s.pares.length} pares es mucho para un solo bloque; considera dividirlo.`);
@@ -116,7 +124,7 @@ if (examen) {
         if (!ids.has(it.tema)) err(`${w}: tema "${it.tema}" no existe en "temas".`);
         if (tipo === 'pareo') { if (checkPareo(it, w)) items += it.pares.length; return; }
         checkItem(tipo, it, w); items += 1;
-        const txt = String(it.pregunta || it.afirmacion || it.texto || '').trim().toLowerCase() + (it.imagen || '');
+        const txt = String(it.pregunta || it.afirmacion || it.texto || it.enunciado || '').trim().toLowerCase() + (it.imagen || '');
         if (seenText.has(txt)) warns.push(`${w}: enunciado duplicado de ${seenText.get(txt)}.`); else seenText.set(txt, w);
       });
     }

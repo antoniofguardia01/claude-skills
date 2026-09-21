@@ -200,6 +200,9 @@ body.in-app .topbar{padding-right:calc(clamp(12px,2.4vw,30px) + 46px)}
 .blank:focus{outline:none;background:color-mix(in srgb,var(--accent) 18%,transparent)}
 .blank.ok{border-color:var(--good);color:var(--good);background:color-mix(in srgb,var(--good) 12%,transparent)}
 .blank.bad{border-color:var(--bad);color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,transparent);text-decoration:line-through}
+.ord .k{min-width:30px}
+.ord .opt.sel .k{font-weight:700}
+.ord .fix{margin-left:auto}
 .fix{font:600 .7em var(--fm);color:var(--good);padding:2px 6px;border:1px solid var(--good);margin-right:4px;vertical-align:middle;white-space:nowrap}
 .dev{display:block;width:100%;min-height:150px;resize:vertical;padding:16px 18px;border:1px solid var(--line-strong);background:var(--glass);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:16px;line-height:1.55;transition:border-color .3s}
 .dev:focus{outline:none;border-color:var(--accent)}
@@ -482,8 +485,8 @@ const NARROW=()=>matchMedia('(max-width:720px)').matches;
 const fmtPts=n=>(Math.round(n*10)/10).toString().replace('.',',');
 const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const STORE_KEY='examen-cine:'+(EX.materia||'')+':'+EX.titulo;
-const DEFAULT_TITLES={seleccion:'Selección única',vf:'Verdadero o falso',completar:'Complete los espacios',pareo:'Pareo',desarrollo:'Desarrollo'};
-const DEFAULT_INS={seleccion:'Lea cada enunciado y seleccione la respuesta correcta.',vf:'Indique si cada afirmación es verdadera o falsa.',completar:'Complete los espacios en blanco con el término correcto.',pareo:'Relacione cada concepto de la columna A con su pareja de la columna B. Toque un elemento de A y luego uno de B.',desarrollo:'Responda con sus propias palabras. Luego compare con la respuesta modelo.'};
+const DEFAULT_TITLES={seleccion:'Selección única',vf:'Verdadero o falso',completar:'Complete los espacios',ordenar:'Ordene el proceso',pareo:'Pareo',desarrollo:'Desarrollo'};
+const DEFAULT_INS={seleccion:'Lea cada enunciado y seleccione la respuesta correcta.',vf:'Indique si cada afirmación es verdadera o falsa.',completar:'Complete los espacios en blanco con el término correcto.',ordenar:'Toque los pasos en el orden en que ocurren, del primero al último.',pareo:'Relacione cada concepto de la columna A con su pareja de la columna B. Toque un elemento de A y luego uno de B.',desarrollo:'Responda con sus propias palabras. Luego compare con la respuesta modelo.'};
 
 /* ================= TEMA ================= */
 function applyTheme(){
@@ -795,9 +798,9 @@ function show(id){$$('.screen').forEach(s=>s.classList.toggle('active',s.id===id
 /* ================= INICIO ================= */
 const BANK=EX.banco||null, ALL_TOPICS=EX.temas||[], PARTS=(EX.partes&&EX.partes.length)?EX.partes:null;
 let TOPICS=ALL_TOPICS, PART=null;
-const TYPE_ORDER=['seleccion','vf','completar','pareo','desarrollo'];
-const TYPE_SHORT={seleccion:'Selección',vf:'V o F',completar:'Completar',pareo:'Pareo',desarrollo:'Desarrollo'};
-const DEF_PTS=t=>t==='desarrollo'?3:1;
+const TYPE_ORDER=['seleccion','vf','completar','ordenar','pareo','desarrollo'];
+const TYPE_SHORT={seleccion:'Selección',vf:'V o F',completar:'Completar',ordenar:'Ordenar',pareo:'Pareo',desarrollo:'Desarrollo'};
+const DEF_PTS=t=>t==='desarrollo'?3:t==='ordenar'?2:1;
 const normSecs=arr=>arr.map((s,i)=>({...s,si:i,titulo:s.titulo||DEFAULT_TITLES[s.tipo],instrucciones:s.instrucciones||DEFAULT_INS[s.tipo],pts:s.puntos??DEF_PTS(s.tipo),count:s.tipo==='pareo'?s.pares.length:s.items.length}));
 let SECS=normSecs(EX.secciones||[]);
 const TOTAL_ITEMS=SECS.reduce((a,s)=>a+s.count,0), TOTAL_PTS=SECS.reduce((a,s)=>a+s.count*s.pts,0);
@@ -875,6 +878,7 @@ function buildAttempt(filter){
       if(filter)items=items.filter(u=>filter.has(u.key));if(!items.length)return;
       if(sh)items=shuf(items);
       if(sec.tipo==='seleccion')items.forEach(u=>{const idx=u.it.opciones.map((_,i)=>i);u.perm=(sh&&u.it.barajar!==false)?shuf(idx):idx});
+      if(sec.tipo==='ordenar')items.forEach(u=>u.perm=shufOrd(u.it.pasos.length));
       S.units=items;
     }
     S.units.forEach((u,n)=>{u.n=n+1;ATT.map[u.key]={S,u}});
@@ -882,6 +886,7 @@ function buildAttempt(filter){
   });
 }
 const solBlanks=it=>it.respuestas.map(r=>Array.isArray(r)?r:[r]);
+function shufOrd(n){const ix=[...Array(n).keys()];if(n<2)return ix;let p;for(let i=0;i<20;i++){p=shuf(ix);if(p.some((v,j)=>v!==j))return p}return p}
 const keyAlts=k=>String(k).split('|').map(norm).filter(Boolean);
 function devSuggest(it,txt){const ks=it.claves||[];if(!ks.length||!norm(txt))return 0;const n=norm(txt);const hit=ks.filter(k=>keyAlts(k).some(a=>n.includes(a))).length/ks.length;return hit>=.75?1:hit>=.35?.5:0}
 function score(S,u){
@@ -890,6 +895,7 @@ function score(S,u){
     case 'seleccion':{const a=ANS[key];return{max,got:a===it.correcta?max:0,answered:a!==undefined}}
     case 'vf':{const a=ANS[key];return{max,got:a===!!it.respuesta?max:0,answered:a!==undefined}}
     case 'completar':{const arr=ANS[key]||[],sol=solBlanks(it);let c=0;sol.forEach((s,i)=>{if(norm(arr[i])&&s.some(x=>norm(x)===norm(arr[i])))c++});return{max,got:max*c/sol.length,answered:arr.some(x=>norm(x))}}
+    case 'ordenar':{const arr=ANS[key]||[],n=it.pasos.length;const c=arr.reduce((a,v,i)=>a+(v===i?1:0),0);return{max,got:max*c/n,answered:arr.length>0}}
     case 'pareo':{const a=ANS[key];return{max,got:a===u.correct?max:0,answered:!!a}}
     case 'desarrollo':{const txt=ANS[key]||'';const g=GRADES[key]??devSuggest(it,txt);return{max,got:max*g,answered:!!norm(txt),graded:GRADES[key]!=null}}
   }
@@ -928,6 +934,15 @@ function unitHTML(S,u){
     inner=`${tag}${img}<p class="fill">${html}</p>`;
     if(!rev&&MODE==='practice')inner+=`<div class="actions"><button class="btn sm" data-act="check" data-key="${key}">Comprobar <i>↵</i></button></div>`;
     if(rev){const r=score(S,u);const st=r.got>=r.max-1e-9?'ok':r.got>0?'part':'bad';inner+=fb(st,st==='ok'?'Correcto':st==='part'?'Parcial':'Incorrecto','',it.explicacion)}
+  }else if(S.tipo==='ordenar'){
+    const arr=ANS[key]||[];
+    const rows=u.perm.map(oi=>{const pos=arr.indexOf(oi);let c='opt';if(pos>=0)c+=' sel';
+      if(rev)c+=pos===oi?' ok':' bad';
+      return `<button class="${c}" data-act="ord" data-key="${key}" data-i="${oi}" ${lock} aria-label="Paso ${esc(it.pasos[oi])}${pos>=0?', posición '+(pos+1):''}"><span class="k">${pos>=0?pos+1:'·'}</span><span>${esc(it.pasos[oi])}</span>${rev&&pos!==oi?`<span class="fix">${oi+1}\u00ba</span>`:''}</button>`}).join('');
+    inner=`${tag}${img}<p class="q-p">${esc(it.enunciado)}</p><div class="opts ord">${rows}</div>`;
+    if(!rev&&MODE!=='exam')inner+=`<div class="actions"><button class="btn sm" data-act="check" data-key="${key}" ${arr.length?'':'disabled'}>Comprobar orden <i>\u2192</i></button>${arr.length?`<button class="btn sm" data-act="ordclear" data-key="${key}">Reiniciar</button>`:''}</div>`;
+    if(rev){const r=score(S,u),n=it.pasos.length,c=arr.reduce((a,v,i)=>a+(v===i?1:0),0);const st=r.got>=r.max-1e-9?'ok':r.got>0?'part':'bad';
+      inner+=fb(st,st==='ok'?'Correcto':`${c} de ${n} pasos en su lugar`,st==='ok'?'':`Orden correcto: ${it.pasos.map((x,i)=>`<b>${i+1}.</b> ${esc(x)}`).join(' \u00b7 ')}`,it.explicacion)}
   }else if(S.tipo==='desarrollo'){
     const txt=ANS[key]||'';const words=txt.trim()?txt.trim().split(/\s+/).length:0;
     inner=`${tag}${img}<p class="q-p">${esc(it.pregunta)}</p><textarea class="dev" data-act="dev" data-key="${key}" placeholder="Escribe tu respuesta aquí…" ${rev&&MODE!=='review'?'':''}>${esc(txt)}</textarea><div class="dev-foot"><span data-wc="${key}">${words} palabras</span>${it.pista&&!rev?`<span>Pista: ${esc(it.pista)}</span>`:''}</div>`;
@@ -1012,6 +1027,8 @@ function wireApp(){
     if(act==='sel'){ANS[key]=+b.dataset.v;if(MODE==='practice')REV.add(key);rerender(key)}
     else if(act==='vf'){ANS[key]=b.dataset.v==='1';if(MODE==='practice')REV.add(key);rerender(key)}
     else if(act==='check'){REV.add(key);rerender(key)}
+    else if(act==='ord'){const arr=ANS[key]||(ANS[key]=[]),i=+b.dataset.i,p=arr.indexOf(i);if(p>=0)arr.splice(p,1);else arr.push(i);if(!arr.length)delete ANS[key];rerender(key)}
+    else if(act==='ordclear'){delete ANS[key];rerender(key)}
     else if(act==='grade'){GRADES[key]=+b.dataset.v;rerender(key);if($('#results').classList.contains('active'))buildResults(false)}
     else if(act==='pa'){const S=ATT.map[key].S;
       if(PEND_B){ANS[key]=PEND_B;JUST=key;PEND_B=null;ACTIVE_A=null}
@@ -1205,7 +1222,7 @@ function buildCard(id,pares){
     S.units=pairs.map((p,i)=>({key:`${si}-${i}`,a:p.a,b:p.b,img:p.imagen}));
     S.bs=shuf(used.concat(extra)).map((t,j)=>({letter:LET[j],text:t}));
     S.units.forEach(u=>u.correct=S.bs.find(b=>b.text===u.b).letter);
-  }else{const u={key:`${si}-0`,it};if(tipo==='seleccion'){const ix=it.opciones.map((_,i)=>i);u.perm=it.barajar===false?ix:shuf(ix)}S.units=[u]}
+  }else{const u={key:`${si}-0`,it};if(tipo==='seleccion'){const ix=it.opciones.map((_,i)=>i);u.perm=it.barajar===false?ix:shuf(ix)}if(tipo==='ordenar')u.perm=shufOrd(it.pasos.length);S.units=[u]}
   S.units.forEach((u,n)=>u.n=n+1);
   ATT={secs:[S],map:{}};S.units.forEach(u=>ATT.map[u.key]={S,u});CUR=0;
   ANS={};REV=new Set();GRADES={};ACTIVE_A=null;PEND_B=null;
@@ -1255,7 +1272,7 @@ async function prevCard(){
 function syncFoot(){
   const c=FREE&&FREE.card,btn=$('#fcNext');if(!c||!btn)return;const rev=REV.has(cardKey(c));
   btn.innerHTML=rev?'Siguiente <i>→</i>':'Saltar <i>→</i>';btn.classList.toggle('solid',rev);
-  $('#fcHint').textContent=rev?(c.S.tipo==='desarrollo'?'Autoevalúate y sigue':'Enter para la siguiente'):{seleccion:'Toca una opción',vf:'¿Verdadero o falso?',completar:'Escribe y pulsa Enter',pareo:'Toca un elemento de A y luego su pareja en B',desarrollo:'Escribe y luego mira la respuesta modelo'}[c.S.tipo];
+  $('#fcHint').textContent=rev?(c.S.tipo==='desarrollo'?'Autoevalúate y sigue':'Enter para la siguiente'):{seleccion:'Toca una opción',vf:'¿Verdadero o falso?',completar:'Escribe y pulsa Enter',ordenar:'Toca los pasos en orden',pareo:'Toca un elemento de A y luego su pareja en B',desarrollo:'Escribe y luego mira la respuesta modelo'}[c.S.tipo];
 }
 function freeChrome(bump){
   const st=FREE.st,pct=st.max?Math.round(st.got/st.max*100)+'%':'—';
@@ -1273,7 +1290,7 @@ const SIM_LEN=[[15,'Corto'],[30,'Normal'],[50,'Largo']];
 const SIM_TIME=[[0,'Sin tiempo'],[20,'20 min'],[40,'40 min'],[60,'60 min']];
 function simAvail(t){if(!BANK[t])return 0;const pool=BANK[t].filter(it=>SIM.topics.has(it.tema));return t==='pareo'?new Set(pool.flatMap(g=>g.pares.map(p=>p.a||p.imagen))).size:pool.length}
 function simPlan(){
-  const w=Object.assign({seleccion:.36,vf:.22,completar:.18,pareo:.16,desarrollo:.08},(EX.simulacro||{}).pesos||{});
+  const w=Object.assign({seleccion:.36,vf:.22,completar:.18,ordenar:.14,pareo:.16,desarrollo:.08},(EX.simulacro||{}).pesos||{});
   const types=TYPE_ORDER.filter(t=>SIM.types.has(t)&&simAvail(t));const sum=types.reduce((a,t)=>a+w[t],0);const plan={};
   types.forEach(t=>{let n=Math.round(SIM.len*w[t]/sum);if(t==='pareo')n=Math.max(4,Math.min(n,8));if(t==='desarrollo')n=Math.max(1,Math.min(n,4));plan[t]=Math.max(1,Math.min(n,simAvail(t)))});
   return plan;
