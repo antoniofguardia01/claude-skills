@@ -1171,7 +1171,8 @@ function filterSummary(){
   const n=mixCount(FREE.types,FREE.topics);
   $('#fltSum').textContent=`${FREE.types.size} ${FREE.types.size===1?'tipo':'tipos'} · ${FREE.topics.size} ${FREE.topics.size===1?'tema':'temas'} · ${n} preguntas`;
   const ids=[...new Set(candidates())],vis=ids.filter(id=>FREE.seen.has(id)).length;
-  $('#fltCount').innerHTML=n?`<b>${n}</b> preguntas en tu mezcla · vistas <b>${vis}</b> de <b>${ids.length}</b>${ids.length-vis?'':' (la próxima empieza a repetir)'}. La pregunta de turno se actualiza con cada cambio.`:'Activa al menos un tipo y un tema.';
+  const agr=n!==ids.length?`, agrupadas en <b>${ids.length}</b> tarjetas porque cada pareo entra entero en una`:'';
+  $('#fltCount').innerHTML=n?`<b>${n}</b> preguntas en tu mezcla${agr} · vistas <b>${vis}</b> de <b>${ids.length}</b>${ids.length-vis?'':' (la próxima empieza a repetir)'}. La pregunta de turno se actualiza con cada cambio.`:'Activa al menos un tipo y un tema.';
 }
 let FLT_T=0;
 function applyFilters(){
