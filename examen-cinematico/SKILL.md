@@ -1,6 +1,6 @@
 ---
 name: examen-cinematico
-description: Crea exámenes de repaso interactivos con estética cinematográfica — una sola página HTML con portada animada a pantalla completa, fondo animado temático (células, fibras musculares, moléculas, estrellas, código, mapas, cuaderno…), tipografía display llamativa y transiciones, más secciones de selección única, verdadero/falso, completar espacios, ordenar los pasos de un proceso (en biología), pareo columna A/B con líneas que conectan y desarrollo con respuesta modelo y autoevaluación, con resultados, nota y "repetir falladas". Úsala cuando el usuario pida "usa la skill de examen", "hazme un examen cool/animado/bonito", "un examen interactivo de <tema>", "examen con pareo y desarrollo", "quiero repasar para el examen de <tema>" con algo visual, o pase apuntes/PDF/temas y quiera un examen para practicar que se vea profesional. Si pide además una guía de estudio en Word, combínala con exam-prep-kit.
+description: Crea prácticas/exámenes de repaso interactivos con estética cinematográfica — una sola página HTML con portada animada a pantalla completa, fondo animado temático (células, fibras musculares, moléculas, estrellas, código, mapas, cuaderno…), tipografía display llamativa y transiciones, más secciones de selección única, verdadero/falso, completar espacios, ordenar los pasos de un proceso (en biología), pareo columna A/B con líneas que conectan y desarrollo con respuesta modelo y autoevaluación, con resultados, nota y "repetir falladas". Por defecto arma **práctica libre sin cronómetro** con filtros de tema y tipo de pregunta arriba y un botón de **Modo examen** arriba a la derecha para entrar a un simulacro cuando quieras, más botón de pantalla completa. Antes de generar nada, pregunta qué tipos de pregunta y qué diseño quieres (con opciones sugeridas según el contenido, y opción de que tú lo definas). Úsala cuando el usuario pida "usa la skill de examen", "hazme un examen cool/animado/bonito", "un examen interactivo de <tema>", "examen con pareo y desarrollo", "quiero repasar para el examen de <tema>" con algo visual, o pase apuntes/PDF/temas y quiera un examen para practicar que se vea profesional. Si pide además una guía de estudio en Word, combínala con exam-prep-kit.
 ---
 
 # Examen cinemático
@@ -22,9 +22,17 @@ La plantilla ya está resuelta y probada. **Tu trabajo es el contenido y la dire
 - Si el usuario pasa apuntes, PDFs, fotos, guías o talleres: léelos completos (usa las skills `pdf`/`docx`/`pptx` si hace falta). Cada pregunta debe salir de ese material; conserva la terminología del profesor. No inventes datos que el material no respalde.
 - Si pasa un examen anterior del profesor, imita sus tipos de pregunta, redacción de instrucciones y puntajes.
 - Si solo da un tema ("hazme un examen de la Revolución Francesa"), escribe con conocimiento sólido y de nivel escolar/universitario según el contexto, y dilo en una línea al entregar.
-- Si no está claro el nivel o el alcance y no hay material, pregunta una sola vez; si hay material, no preguntes: decide tú.
 
-### 2. Dirige el arte
+### 2. Pregunta antes de construir
+Antes de escribir una sola pregunta, usa `AskUserQuestion` (dos preguntas, una sola vez) — **no lo saltes aunque haya material**, salvo que el usuario ya haya dicho explícitamente qué tipos y qué estilo quiere en su pedido:
+
+- **Tipos de pregunta**: propone 3–4 combinaciones concretas ya pensadas para *ese* contenido (no una lista genérica de los seis tipos). Ejemplos de cómo derivarlas del material: si hay procesos con pasos (mitosis, digestión, sinapsis) ofrece una combinación que incluya `ordenar`; si hay mucho vocabulario/definiciones, una con `pareo` + `completar` fuertes; si el profesor pide argumentar, una con `desarrollo`; siempre incluye una opción "de todo un poco" (los 5-6 tipos balanceados). Última opción siempre: que el usuario escriba lo que quiere en texto libre.
+- **Diseño**: propone 2–3 motores/paletas concretos de `references/temas.md` que encajen con el tema *específico* del contenido (no solo la materia general), describiendo en una frase corta qué se ve (ej. "`fibras` — fibras musculares que se contraen al pasar el mouse"). Última opción: que el usuario describa el estilo que quiere.
+- **Formato**: a menos que el usuario ya haya pedido un examen fijo cronometrado, asume que quiere **práctica infinita sin cronómetro** (`banco`, ver 4b) como modo principal, con el interruptor de **Modo examen** en la barra superior para entrar a un simulacro cuando quiera — es el formato por defecto de esta skill. Solo pregunta si hay ambigüedad real entre "quiero practicar" y "quiero un examen fijo para entregar/tomar una sola vez".
+
+Con las respuestas, sigue sin volver a preguntar el resto del proceso.
+
+### 3. Dirige el arte
 Lee `references/temas.md`. Elige el **motor** que mejor represente el tema *concreto*, no solo la materia (ej.: sistema circulatorio → `pulso`; células → `celulas`; músculos y huesos → `fibras`; Guerra Fría → `brasas`; ecosistemas marinos → `flujo`). Parte del preset y **personaliza**:
 - `glifos` con símbolos del tema (siempre).
 - Acento/paleta si el tema lo pide (ej.: fotosíntesis → verde clorofila en `celulas`; Egipto → oro/arena en `brasas`).
@@ -34,7 +42,7 @@ Lee `references/temas.md`. Elige el **motor** que mejor represente el tema *conc
 
 No reescribas el CSS de la plantilla para "hacerlo más bonito": el diseño ya evita los clichés de IA (degradados morados, tarjetas redondeadas con emoji, sombras de colores). Solo toca `assets/template.html` si falta una capacidad real (ver *Extender*).
 
-### 3. Escribe el JSON del examen
+### 4. Escribe el JSON del examen
 Crea `<carpeta-de-salida>/examen.json` con `{ "tema": {...}, "examen": {...} }`. Ejemplo completo y válido: `assets/ejemplo-musculoesqueletico.json`.
 
 ```jsonc
@@ -78,8 +86,8 @@ Crea `<carpeta-de-salida>/examen.json` con `{ "tema": {...}, "examen": {...} }`.
 - **`explicacion`**: añádela donde el error es común; es lo que convierte el examen en repaso.
 - `imagen` acepta rutas relativas: copia las imágenes a la carpeta de salida (fondo blanco, se muestran con marco).
 
-### 3b. Modo infinito (banco + filtros + simulacro)
-Úsalo cuando el usuario pida un examen "infinito", "con muchas preguntas", "que pueda escoger tipo y tema" o "sin cronómetro". En vez de `secciones`, el JSON lleva:
+### 4b. Modo infinito (banco + filtros + simulacro)
+Es el **formato por defecto** de esta skill (ver paso 2): práctica sin cronómetro con modo examen opcional. Úsalo también cuando el usuario lo pida explícitamente con "infinito", "con muchas preguntas" o "que pueda escoger tipo y tema". En vez de `secciones`, el JSON lleva:
 
 ```jsonc
 "examen": {
@@ -106,20 +114,20 @@ Crea `<carpeta-de-salida>/examen.json` con `{ "tema": {...}, "examen": {...} }`.
 - **Imágenes del PDF**: recórtalas con PyMuPDF usando los rectángulos de `page.get_image_rects()` (no la celda de la tabla, que arrastra bordes) a 220 dpi y guárdalas en `img/`. Úsalas en `seleccion.imagen` y en pares de pareo con `imagen`.
 - Para probar con imágenes relativas, sirve la carpeta por HTTP (la vista de `file://` del navegador integrado no las carga).
 
-### 4. Compila y valida
+### 5. Compila y valida
 ```bash
 node ~/.claude/skills/examen-cinematico/scripts/build_exam.mjs examen.json index.html
 ```
 El script valida estructura (índices, espacios vs. respuestas, distractores que coinciden con respuestas, motores y colores), **comprueba contraste WCAG** de la paleta e inyecta el JSON en la plantilla. Corrige cada error y vuelve a compilar. Atiende los avisos ⚠ salvo que tengas una razón.
 
-### 5. Verifica en el navegador
+### 6. Verifica en el navegador
 Abre `index.html` en el navegador integrado (`preview_start` con `url` file:///…; la carpeta debe estar dentro del proyecto). Si una captura sale solo con el fondo, la pestaña estaba en segundo plano: tráela al frente (`tabs_select`) y recarga. Revisa:
 - Portada: el título cabe completo (tildes visibles), nada se superpone con el botón circular, se ve el fondo animado.
 - Entra al examen, responde algo en cada tipo (en pareo une 2–3 pares y confirma que aparecen las líneas; en ordenar toca los pasos y comprueba que se numeran y que "Reiniciar" los limpia), entrega y mira resultados y revisión.
 - Repite la portada y una sección con `resize_window` preset `mobile`; al terminar vuelve a `desktop`.
 - `read_console_messages` sin errores.
 
-### 6. Entrega
+### 7. Entrega
 - Deja `index.html` (+ `examen.json` y las imágenes) en una carpeta con nombre del tema, en el lugar que diga el usuario o en el directorio de trabajo.
 - Resume en 2–4 líneas: secciones y cantidad de preguntas, motor/estilo elegido y por qué encaja con el tema, y cualquier contenido que escribiste sin material de respaldo.
 - Ofrece publicarlo. No hagas push ni publiques sin que lo pida.
