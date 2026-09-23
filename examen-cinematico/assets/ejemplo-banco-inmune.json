@@ -1,0 +1,76 @@
+{
+  "tema": {
+    "motor": "celulas",
+    "fuentes": {
+      "href": "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap",
+      "display": "Bricolage Grotesque",
+      "body": "Instrument Sans",
+      "mono": "JetBrains Mono",
+      "displayPeso": 800
+    },
+    "colores": {
+      "fondo": "#04110d",
+      "panel": "#0a1c17",
+      "tinta": "#e8f5ee",
+      "suave": "#8fb3a4",
+      "acento": "#b6ff3b",
+      "acento2": "#3bf0c8",
+      "tintaAcento": "#0b1a00",
+      "bien": "#6ee7a8",
+      "mal": "#ff7a8a"
+    },
+    "glifos": ["◉", "🛡", "Y", "∿"]
+  },
+  "examen": {
+    "materia": "Biología",
+    "curso": "Unidad 4 · Sistema inmune",
+    "etiqueta": "Práctica de repaso",
+    "titulo": "Sistema Inmune",
+    "tituloLineas": ["Sistema", "Inmune"],
+    "descripcion": "Barreras, células y anticuerpos: entrena hasta que la respuesta innata y la adaptativa dejen de mezclarse.",
+    "terminos": ["Fagocitosis", "Antígeno", "Anticuerpo", "Linfocito B", "Linfocito T", "Memoria inmunológica", "Citocina", "Macrófago"],
+    "textoBoton": "Entrenar ahora",
+    "temas": [
+      {"id": "innata", "nombre": "Inmunidad innata"},
+      {"id": "adaptativa", "nombre": "Inmunidad adaptativa"},
+      {"id": "organos", "nombre": "Órganos linfoides"}
+    ],
+    "tituloLibre": "Entrena",
+    "subtituloLibre": "sin reloj",
+    "banco": {
+      "seleccion": [
+        {"tema": "innata", "pregunta": "¿Cuál de estas células es la primera en llegar a un sitio de infección?", "opciones": ["Neutrófilo", "Linfocito B", "Célula plasmática", "Linfocito T de memoria"], "correcta": 0, "explicacion": "Los neutrófilos son los fagocitos más abundantes y los primeros en migrar al tejido infectado."},
+        {"tema": "adaptativa", "pregunta": "¿Qué célula se encarga de producir anticuerpos en grandes cantidades?", "opciones": ["Célula plasmática", "Macrófago", "Célula NK", "Neutrófilo"], "correcta": 0, "explicacion": "Las células plasmáticas son linfocitos B diferenciados especializados en secretar anticuerpos."},
+        {"tema": "organos", "pregunta": "¿Dónde maduran los linfocitos T?", "opciones": ["Timo", "Médula ósea", "Bazo", "Ganglio linfático"], "correcta": 0, "explicacion": "Los linfocitos T migran desde la médula ósea al timo, donde maduran."}
+      ],
+      "vf": [
+        {"tema": "innata", "afirmacion": "La inmunidad innata reconoce patógenos específicos gracias a la memoria de exposiciones previas.", "respuesta": false, "explicacion": "Esa es la inmunidad adaptativa; la innata responde de forma inespecífica y sin memoria."},
+        {"tema": "adaptativa", "afirmacion": "Los linfocitos B de memoria permiten una respuesta más rápida ante una segunda exposición al mismo antígeno.", "respuesta": true}
+      ],
+      "completar": [
+        {"tema": "innata", "texto": "Las proteínas del sistema del ___ pueden perforar la membrana de bacterias y marcar patógenos para su fagocitosis.", "respuestas": [["complemento"]]},
+        {"tema": "adaptativa", "texto": "El ___ es la molécula que un anticuerpo reconoce de forma específica.", "respuestas": [["antigeno", "antígeno"]]}
+      ],
+      "pareo": [
+        {
+          "tema": "organos",
+          "titulo": "Órgano ↔ función",
+          "instrucciones": "Une cada órgano linfoide con su función principal.",
+          "pares": [
+            {"a": "Timo", "b": "Maduración de linfocitos T"},
+            {"a": "Médula ósea", "b": "Origen de todas las células sanguíneas"},
+            {"a": "Bazo", "b": "Filtra sangre y responde a antígenos que circulan en ella"},
+            {"a": "Ganglio linfático", "b": "Filtra la linfa y concentra linfocitos"}
+          ],
+          "distractores": ["Produce bilis para digerir grasas"]
+        }
+      ],
+      "desarrollo": [
+        {"tema": "adaptativa", "pregunta": "Explica por qué la segunda exposición a un mismo patógeno suele generar una respuesta inmune más rápida y fuerte que la primera.", "respuesta": "Porque en la primera exposición se generan linfocitos B y T de memoria específicos para ese antígeno; en la segunda exposición, esas células de memoria ya existen, se activan de inmediato y se multiplican mucho más rápido que si el sistema tuviera que reconocer el antígeno desde cero, por lo que la respuesta (anticuerpos) aparece antes y en mayor cantidad.", "claves": ["linfocitos de memoria|celulas de memoria", "activacion mas rapida|respuesta mas rapida", "mayor cantidad de anticuerpos|respuesta mas fuerte"]}
+      ],
+      "ordenar": [
+        {"tema": "innata", "enunciado": "Ordena los pasos de la fagocitosis de una bacteria por un macrófago.", "pasos": ["El macrófago reconoce y se adhiere a la bacteria", "La membrana del macrófago envuelve a la bacteria formando un fagosoma", "El fagosoma se fusiona con un lisosoma formando un fagolisosoma", "Las enzimas del lisosoma degradan a la bacteria", "Los restos se expulsan y los antígenos se presentan a los linfocitos T"], "explicacion": "La presentación final del antígeno es lo que conecta la respuesta innata con la activación de la respuesta adaptativa."}
+      ]
+    }
+  }
+}
