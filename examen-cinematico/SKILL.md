@@ -10,7 +10,7 @@ Genera **un solo archivo HTML** (vanilla, sin dependencias salvo Google Fonts) c
 1. **Portada** a pantalla completa en una sola vista: título gigante que entra línea a línea, marco que se dibuja, datos reales del examen (preguntas, secciones, puntos, tiempo), botón circular giratorio **Comenzar examen**, accesos a **Modo repaso** y **Por secciones**, y cinta de términos clave en movimiento.
 2. **Fondo animado temático** en canvas que reacciona al mouse (10 motores, ver `references/temas.md`), grano de película, viñeta, cursor personalizado, botones magnéticos y botón de **pantalla completa** arriba a la derecha (entra y sale, se oculta si el navegador no lo permite).
 3. **Examen** por secciones con barra superior fija (navegación por sección con progreso, cronómetro o cuenta regresiva, entregar), portadas de sección con número gigante y título con efecto "scramble", transiciones de barrido a pantalla completa entre secciones.
-4. **Seis tipos de sección**: `seleccion`, `vf`, `completar`, `pareo`, `desarrollo` y `ordenar` (este último **solo en exámenes de biología**, ver abajo).
+4. **Tipos de sección**: `seleccion`, `completar`, `pareo`, `desarrollo` y `ordenar` (este último **solo en exámenes de biología**, ver abajo). También existe `vf` (verdadero/falso), pero **no se usa por defecto**: solo inclúyelo si el usuario lo pide explícitamente (ver paso 2).
 5. **Tres modos**: *Examen* (sin feedback hasta entregar), *Repaso* (feedback inmediato por pregunta), *Revisión* (todo corregido con explicaciones).
 6. **Resultados**: porcentaje animado, veredicto, puntos, nota en escala configurable, barras por sección, explosión de glifos si aprueba, **Repetir falladas** (arma un repaso solo con lo que se falló), nuevo intento (rebaraja), mejor puntaje guardado.
 
@@ -26,7 +26,7 @@ La plantilla ya está resuelta y probada. **Tu trabajo es el contenido y la dire
 ### 2. Pregunta antes de construir
 Antes de escribir una sola pregunta, usa `AskUserQuestion` (dos preguntas, una sola vez) — **no lo saltes aunque haya material**, salvo que el usuario ya haya dicho explícitamente qué tipos y qué estilo quiere en su pedido:
 
-- **Tipos de pregunta**: propone 3–4 combinaciones concretas ya pensadas para *ese* contenido (no una lista genérica de los seis tipos). Ejemplos de cómo derivarlas del material: si hay procesos con pasos (mitosis, digestión, sinapsis) ofrece una combinación que incluya `ordenar`; si hay mucho vocabulario/definiciones, una con `pareo` + `completar` fuertes; si el profesor pide argumentar, una con `desarrollo`; siempre incluye una opción "de todo un poco" (los 5-6 tipos balanceados). Última opción siempre: que el usuario escriba lo que quiere en texto libre.
+- **Tipos de pregunta**: propone 3–4 combinaciones concretas ya pensadas para *ese* contenido (no una lista genérica de los seis tipos). Ejemplos de cómo derivarlas del material: si hay procesos con pasos (mitosis, digestión, sinapsis) ofrece una combinación que incluya `ordenar`; si hay mucho vocabulario/definiciones, una con `pareo` + `completar` fuertes; si el profesor pide argumentar, una con `desarrollo`; siempre incluye una opción "de todo un poco" (`seleccion`, `completar`, `pareo`, `desarrollo` y `ordenar` si aplica, balanceados). **No ofrezcas `vf` (verdadero/falso) como parte de ninguna combinación por defecto**; solo aparece si el usuario lo escribe explícitamente en la opción de texto libre. Última opción siempre: que el usuario escriba lo que quiere en texto libre.
 - **Diseño**: propone 2–3 motores/paletas concretos de `references/temas.md` que encajen con el tema *específico* del contenido (no solo la materia general), describiendo en una frase corta qué se ve (ej. "`fibras` — fibras musculares que se contraen al pasar el mouse"). Última opción: que el usuario describa el estilo que quiere.
 - **Formato**: a menos que el usuario ya haya pedido un examen fijo cronometrado, asume que quiere **práctica infinita sin cronómetro** (`banco`, ver 4b) como modo principal, con el interruptor de **Modo examen** en la barra superior para entrar a un simulacro cuando quiera — es el formato por defecto de esta skill. Solo pregunta si hay ambigüedad real entre "quiero practicar" y "quiero un examen fijo para entregar/tomar una sola vez".
 
@@ -76,9 +76,9 @@ Crea `<carpeta-de-salida>/examen.json` con `{ "tema": {...}, "examen": {...} }`.
 `titulo`, `instrucciones` y `puntos` de cada sección son opcionales (hay textos por defecto; `puntos` = 1, 2 en ordenar, 3 en desarrollo). Puedes repetir tipos (dos secciones de selección sobre subtemas distintos, dos pareos).
 
 **Calidad del contenido — lo que hace que el repaso sirva:**
-- **Cantidad**: un examen normal ≈ 20–40 ítems en 4–5 secciones. Sigue el formato del profesor si hay uno. Incluye todos los tipos que pidió el usuario; por defecto: selección, V/F, pareo, completar y desarrollo.
+- **Cantidad**: un examen normal ≈ 20–40 ítems en 4–5 secciones. Sigue el formato del profesor si hay uno. Incluye todos los tipos que pidió el usuario; por defecto: selección, pareo, completar y desarrollo (sin V/F, ver paso 2).
 - **Selección**: 4 opciones plausibles del mismo tipo gramatical y longitud parecida; distractores con los errores reales que cometen los estudiantes (términos que se confunden), nunca opciones absurdas. Varía la posición de la correcta (igual se baraja). Evita "todas las anteriores" (se rompe al barajar).
-- **V/F**: ~mitad falsas; las falsas cambian un solo detalle clave. `explicacion` obligatoria en las falsas, diciendo lo correcto.
+- **V/F** (solo si el usuario lo pide explícitamente): ~mitad falsas; las falsas cambian un solo detalle clave. `explicacion` obligatoria en las falsas, diciendo lo correcto.
 - **Ordenar (solo biología)**: úsalo **solo si el examen es de biología** —y solo para procesos que de verdad tienen una secuencia: potencial de acción, sinapsis, mitosis y meiosis, fotosíntesis, digestión, coagulación, respuesta inmune, ciclo celular, recorrido de la sangre o del estímulo nervioso. En cualquier otra materia no lo incluyas. El alumno toca los pasos en el orden en que ocurren y se puntúa por pasos en su lugar, así que: 4–6 pasos (nunca más de 8), cada paso una frase corta y autocontenida, **`pasos` va en el orden correcto** (la plantilla los baraja sola y nunca los muestra ya resueltos), sin dos pasos intercambiables y sin pistas de orden dentro del texto ("primero…", "después…"). Si el material trae el proceso numerado (apuntes, diagrama o video), respeta esa numeración. Vale un `ordenar` por proceso; 1–3 en todo el examen.
 - **Pareo**: 5–8 pares por bloque + 1–3 `distractores` del mismo campo. Columna A corta (término), B descriptiva. Un bloque por subtema.
 - **Completar**: un espacio (`___`, 3+ guiones bajos) por concepto clave; `respuestas` con variantes aceptables (sin tilde, singular/plural). La corrección ya ignora mayúsculas, tildes y puntuación, pero no sinónimos. `banco: true` muestra las palabras (útil si el profesor lo hace así).
@@ -95,10 +95,10 @@ Es el **formato por defecto** de esta skill (ver paso 2): práctica sin cronóme
   "temas": [{"id": "somatotipos", "nombre": "Somatotipos"}, ...],
   "accesos": [{"texto": "Movimientos articulares", "detalle": "Solo la tabla ↗", "temas": ["mov-..."], "tipos": ["pareo"]}], // atajos en la portada (opcional)
   "tituloLibre": "Entrena", "subtituloLibre": "sin reloj",
-  "simulacro": {"pesos": {"seleccion": .36, "vf": .22, "completar": .18, "ordenar": .14, "pareo": .16, "desarrollo": .08}}, // opcional
+  "simulacro": {"pesos": {"seleccion": .40, "completar": .22, "ordenar": .14, "pareo": .16, "desarrollo": .08}}, // opcional; agrega "vf" solo si el usuario lo pidió
   "banco": {
     "seleccion": [{"tema": "somatotipos", "pregunta": "…", "opciones": [...], "correcta": 0, "explicacion": "…", "imagen": "img/x.jpg"}],
-    "vf": [{"tema": "…", ...}], "completar": [{"tema": "…", ...}], "desarrollo": [{"tema": "…", ...}],
+    "completar": [{"tema": "…", ...}], "desarrollo": [{"tema": "…", ...}], // "vf" también existe pero no se usa por defecto
     "ordenar": [{"tema": "…", "enunciado": "…", "pasos": ["…", "…", "…"], "explicacion": "…"}], // solo biología
     "pareo": [{"tema": "…", "titulo": "Imagen ↔ movimiento", "instrucciones": "…", "max": 6,
                "pares": [{"a": "Texto"}|{"imagen": "img/x.jpg", "a": ""}, "b": "…"], "distractores": ["…"]}]
@@ -110,7 +110,7 @@ Es el **formato por defecto** de esta skill (ver paso 2): práctica sin cronóme
   - **Repetir** (botón siempre visible en la tarjeta): vuelve a plantear la misma pregunta desde cero, rebarajando opciones (en pareo, los mismos pares). Si ya se había respondido, ese intento cuenta en las estadísticas antes de repetir.
   - **Sin repeticiones hasta agotar la mezcla**: no sale una pregunta ya vista mientras queden sin ver con esos filtros; el panel muestra "vistas X de N". Cuando se acaban, la siguiente tarjeta muestra el aviso *Mezcla completada* (y un toast) y empieza una nueva vuelta.
 - **Modo examen**: interruptor en la barra superior (siempre visible) o botón en la portada. Arma un examen al azar con los tipos/temas elegidos, largo (15/30/50) y tiempo opcional (sin tiempo/20/40/60). Resultados con nota, revisión, repetir falladas y "otro examen".
-- **Volumen**: "infinito" = exprime el material. Para tablas (músculos, fechas, fórmulas) escribe un pequeño generador en Python dentro del proyecto (`tools/generar_banco.py`) que produzca familias de preguntas (dato→concepto, concepto→dato, opuestos, imagen→concepto, V/F con el dato cambiado) y revisa una muestra impresa buscando errores gramaticales antes de compilar.
+- **Volumen**: "infinito" = exprime el material. Para tablas (músculos, fechas, fórmulas) escribe un pequeño generador en Python dentro del proyecto (`tools/generar_banco.py`) que produzca familias de preguntas (dato→concepto, concepto→dato, opuestos, imagen→concepto) y revisa una muestra impresa buscando errores gramaticales antes de compilar.
 - **Imágenes del PDF**: recórtalas con PyMuPDF usando los rectángulos de `page.get_image_rects()` (no la celda de la tabla, que arrastra bordes) a 220 dpi y guárdalas en `img/`. Úsalas en `seleccion.imagen` y en pares de pareo con `imagen`.
 - Para probar con imágenes relativas, sirve la carpeta por HTTP (la vista de `file://` del navegador integrado no las carga).
 

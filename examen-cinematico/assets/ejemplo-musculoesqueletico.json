@@ -52,18 +52,6 @@
         ]
       },
       {
-        "tipo": "vf",
-        "titulo": "Verdadero o falso",
-        "puntos": 1,
-        "items": [
-          { "afirmacion": "El esqueleto humano adulto tiene típicamente 206 huesos.", "respuesta": true },
-          { "afirmacion": "La miosina es el filamento delgado del sarcómero.", "respuesta": false, "explicacion": "La miosina es el filamento grueso; la actina es el delgado." },
-          { "afirmacion": "En el movimiento, el músculo es la parte activa y el hueso la parte pasiva.", "respuesta": true },
-          { "afirmacion": "La escápula es un ejemplo de hueso corto.", "respuesta": false, "explicacion": "La escápula es un hueso plano; el carpo es un ejemplo de hueso corto." },
-          { "afirmacion": "El tejido óseo es uno de los tres tipos de tejido muscular.", "respuesta": false, "explicacion": "Los tres tipos son liso, cardíaco y esquelético." }
-        ]
-      },
-      {
         "tipo": "pareo",
         "titulo": "Pareo",
         "instrucciones": "Relacione cada estructura (columna A) con su descripción (columna B). Hay opciones que no se utilizan.",
